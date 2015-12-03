@@ -32,3 +32,11 @@ group :development, :test do
   gem "spring"
 end
 
+group :production do
+  gem "rails_12factor"
+  gem "capistrano"
+  gem "capistrano-rvm"
+  gem "capistrano-rails"
+  gem "capistrano-bundler"
+  gem "capistrano3-puma"
+end
