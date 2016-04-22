@@ -24,7 +24,7 @@ class RequestDispatcherController < ApplicationController
       if current_user.role == "customer"
         redirect_to customer_requests_path
       elsif current_user.role == "supplier"
-        redirect_to supplier_profile_path
+        redirect_to supplier_requests_path
       else
         @error_code = "401"
         @message = "Unauthorized request."
