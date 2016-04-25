@@ -1,6 +1,6 @@
 class Supplier::VehiclesController < Supplier::BaseController
   def index   
-   	@vehicles = Vehicle.all
+   	@vehicles = Vehicle.where(supplier_id: Supplier.find_by_user_id(current_user.id).supplier_id)
   end
 
   def show

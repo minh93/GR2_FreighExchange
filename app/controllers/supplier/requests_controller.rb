@@ -18,8 +18,9 @@ class Supplier::RequestsController < Supplier::BaseController
       newInvoice = @request.invoices.build
       #In this context current user always be supplier
       #FIXME: Check role ?
-      newInvoice.supplier_id = current_user.id
+      
       newInvoice.offer_price = params[:offer_price]
+      newInvoice.supplier_id = Supplier.find_by_user_id(current_user.id).supplier_id
       newInvoice.message = params[:message]
       newInvoice.save
 
@@ -30,7 +31,7 @@ class Supplier::RequestsController < Supplier::BaseController
 
   private
   def request_is_approved?
-    invoice = Invoice.find_by request_id: params[:id], supplier_id: current_user.get_detailed_info.id
+    invoice = Invoice.find_by request_id: params[:id], supplier_id: Supplier.find_by_user_id(current_user.id).supplier_id
     if invoice.nil?
       @show_approve_form = true
     else

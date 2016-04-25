@@ -33,8 +33,8 @@ class Customer::RequestsController < Customer::BaseController
       @request.end_point_long = submit_params[:end_point_long].to_f
 
       # Check input location has already been in location db
-      start_point = Location.find_nearest_point(@request.start_point_lat, @request.start_point_long)
-      end_point = Location.find_nearest_point(@request.end_point_lat, @request.end_point_long)
+      start_point = Location.find_nearest_point(@request.start_point_long, @request.start_point_lat)
+      end_point = Location.find_nearest_point(@request.end_point_long, @request.end_point_lat)
 
       @request.start_point = start_point.location_id if start_point != nil
       @request.end_point = end_point.location_id if end_point != nil

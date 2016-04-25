@@ -2,8 +2,8 @@ class Location < ActiveRecord::Base
   self.table_name = "location"
 
   #Return nearest location, if no return nil
-  def self.find_nearest_point lat, lon    
-    return_tuple = ActiveRecord::Base.connection.execute("select nearest_point(#{lat}, #{lon});");
+  def self.find_nearest_point lon, lat   
+    return_tuple = ActiveRecord::Base.connection.execute("select nearest_point(#{lon}, #{lat});");
     if return_tuple.values[0][0].nil?
         return nil
     else

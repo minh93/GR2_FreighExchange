@@ -21,6 +21,10 @@ class Request < ActiveRecord::Base
     is_read: false
   end
 
+  def self.check_status_request
+    ActiveRecord::Base.connection.execute("SELECT check_request_time('2 days', '4 days', '6 days')")
+  end
+
   #FIXME: Background job, catch exception
   def auto_find_best_ways
     result_1 = DAL.containRouting(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)
@@ -30,10 +34,12 @@ class Request < ActiveRecord::Base
       #Create and save schedule to db, level SYSTEM, status none
       #FIXME add more infomation for schedule
       tem_array_abstract_trip_id = Array.new
+      
       result_2.values.each do |item|
         hash_arr = JSON.parse(item[0])
         tem_array_abstract_trip_id << hash_arr["abstract_trip_id"]        
       end
+
       self.schedules.create! level: "system",
         status: "open",
         abstract_trips: tem_array_abstract_trip_id

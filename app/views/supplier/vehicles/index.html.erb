@@ -16,7 +16,7 @@
         <th> license number</th>
         <th> current location</th>
         <th> available </th>
-        <th> supplier id </th>
+        <th> category id </th>
         <th> cost per km </th>  
       </thead>
       <tbody>
@@ -28,7 +28,7 @@
             <td><%= vehicle.vehicle_number %></td>
             <td><%= vehicle.point %></td>
             <td><%= vehicle.available %></td>
-            <td><%= vehicle.s_id %></td>
+            <td><%= vehicle.category_id %></td>
             <td><%= vehicle.cost_per_km %></td>
             <td><%= link_to 'Show',controller: "vehicles", action: "show", id: vehicle.id %></td>
             <td><%= link_to 'Edit', edit_supplier_vehicle_path(vehicle) %></td>

@@ -12,7 +12,7 @@ default: &default
 default: &default_postgres
   adapter: postgresql
   encoding: unicode
-  database: gr2_postgres
+  database: gr2
   pool: 5
   username: postgres
   password: postgres
