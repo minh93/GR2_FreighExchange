@@ -3,8 +3,8 @@ require "GoogleAPI"
 class Customer::RequestsController < Customer::BaseController
   def index
     @requests = current_user.get_detailed_info.
-      requests.get_all.
-      paginate(:page => params[:page], :per_page => 10)
+      requests.get_all.order(created_at: :DESC).
+        paginate(:page => params[:page], :per_page => 10)
   end
 
   def show
@@ -36,8 +36,8 @@ class Customer::RequestsController < Customer::BaseController
       start_point = Location.find_nearest_point(@request.start_point_long, @request.start_point_lat)
       end_point = Location.find_nearest_point(@request.end_point_long, @request.end_point_lat)
 
-      @request.start_point = start_point.location_id if start_point != nil
-      @request.end_point = end_point.location_id if end_point != nil
+      @request.start_point = start_point if start_point != nil
+      @request.end_point = end_point if end_point != nil
 
       #Estimate distance by google service
       distance = GoogleAPI.new().distanceEstimate(@request.start_point_lat,

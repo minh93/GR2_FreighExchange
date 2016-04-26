@@ -1,11 +1,8 @@
 class DAL
-  def self.callProc
-    record_array = ActiveRecord::Base.connection.execute("select contain_routing(105.8469019, 21.0243218, 105.8440137, 21.0285599);")
-    return record_array
-  end
-
-  def self.containRouting start_lon, start_lat, end_lon, end_lat
-    record_array = ActiveRecord::Base.connection.execute("select contain_routing(#{start_lon}, #{start_lat}, #{end_lon}, #{end_lat});")
+  #Routing function
+  #Check contain route. Return 0 if not found
+  def self.containRouting start_lat, start_lon, end_lat, end_lon
+    record_array = ActiveRecord::Base.connection.execute("select contain_routing(#{start_lat}, #{start_lon}, #{end_lat}, #{end_lon});")
     result = (record_array.values[0][0]).to_i
     return result
   end
@@ -13,5 +10,15 @@ class DAL
   def self.pgrDijkstraFromAtoB start_lon, start_lat, end_lon, end_lat
     record_array = ActiveRecord::Base.connection.execute("select row_to_json(pgr_dijkstra_fromAtoB(#{start_lon}, #{start_lat}, #{end_lon}, #{end_lat}));")
     return record_array 
+  end
+  #Find id of nearest point. Return 0 if not found
+  def self.findNearestPoint long, lat
+    record_array = ActiveRecord::Base.connection.execute("select nearest_point(#{lat}, #{long})")
+    result = (record_array.values[0][0]).to_i
+    if result != 0
+      return result
+    else
+      return nil
+    end
   end
 end

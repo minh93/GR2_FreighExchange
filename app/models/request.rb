@@ -28,11 +28,11 @@ class Request < ActiveRecord::Base
   #FIXME: Background job, catch exception
   def auto_find_best_ways
     result_1 = DAL.containRouting(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)
-    if !result_1.nil?
-      result_2 = DAL.pgrDijkstraFromAtoB(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)
-      user_customer_id = Customer.find_by_customer_id(self.customer_id).user_id
+    user_customer_id = Customer.find_by_customer_id(self.customer_id).user_id    
+    if result_1 != 0
+      result_2 = DAL.pgrDijkstraFromAtoB(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)      
       #Create and save schedule to db, level SYSTEM, status none
-      #FIXME add more infomation for schedule
+      #FIXME add more infomation for schedule, time ...
       tem_array_abstract_trip_id = Array.new
       
       result_2.values.each do |item|
@@ -52,6 +52,21 @@ class Request < ActiveRecord::Base
       end
       self.notifications.create! user_id: user_customer_id, 
         message: "Found #{result_1} nodes in best ways #{tem_msg}", 
+        level: "system",
+        is_read: false
+    else
+      #Create direct schedule
+      new_trip = AbstractTrip.create!(category_id: self.category_id,
+        start_point: self.start_point,
+        end_point: self.end_point,
+        type_of_trip: "not_persistence")
+      tem_array_abstract_trip_id = Array.new
+      tem_array_abstract_trip_id << new_trip.id
+      self.schedules.create! level: "system",
+        status: "open",
+        abstract_trips: tem_array_abstract_trip_id
+      self.notifications.create! user_id: user_customer_id, 
+        message: "Direct request has been created!", 
         level: "system",
         is_read: false
     end
