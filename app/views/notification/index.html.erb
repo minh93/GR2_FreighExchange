@@ -13,7 +13,7 @@
       </tr>
     </thead>
     <tbody>
-      <% @messages.each do |message| %>
+      <% @all_messages.each do |message| %>
       <tr>
         <td><%= message.id %></td>
         <td><%= message.created_at %></td>
@@ -22,6 +22,7 @@
       <% end %>
     </tbody>
   </table>
+  <%= will_paginate @all_messages %>
     </div>
   </div>
 </div>

@@ -59,7 +59,7 @@ class Request < ActiveRecord::Base
       new_trip = AbstractTrip.create!(category_id: self.category_id,
         start_point: self.start_point,
         end_point: self.end_point,
-        type_of_trip: "not_persistence")
+        is_persistence: true)
       tem_array_abstract_trip_id = Array.new
       tem_array_abstract_trip_id << new_trip.id
       self.schedules.create! level: "system",

@@ -115,6 +115,53 @@ $$;
 
 
 --
+-- Name: check_request_time(interval, interval, interval); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION check_request_time(remind1 interval, remind2 interval, expired interval) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE timeTilNow interval; 
+DECLARE n integer;
+DECLARE i integer;
+DECLARE idNone int[];
+DECLARE idRemind1 int[];
+DECLARE idRemind2 int[];
+BEGIN
+	-- check requests have status 'none' or 'pending'
+	idNone =(SELECT ARRAY(SELECT request_id FROM request WHERE status = 'none' OR status = 'pending'));
+	n = (SELECT count(*) FROM request WHERE status = 'none' OR status = 'pending'); --count none status request
+	FOR i in 0..n-1 LOOP
+		timeTilNow = (SELECT (CURRENT_TIMESTAMP - (SELECT updated_at FROM request WHERE request_id = idNone[i])));
+		IF(timeTilNow >  expired) THEN UPDATE request SET status = 'expired' WHERE request_id = idNone[i];
+		ELSEIF(timeTilNow >  remind2 ) THEN UPDATE request SET status = 'remind2' WHERE request_id = idNone[i];
+		ELSEIF(timeTilNow >  remind1 ) THEN UPDATE request SET status = 'remind1' WHERE request_id = idNone[i];
+		END IF;
+	END LOOP;
+
+	--check requests have status 'remind1'
+	idRemind1 = (SELECT ARRAY(SELECT request_id FROM request WHERE status = 'remind1'));
+	n = (SELECT count(*) FROM request WHERE status = 'remind1'); --count none status request
+	FOR i in 0..n-1 LOOP
+		timeTilNow = (SELECT (CURRENT_TIMESTAMP - (SELECT updated_at FROM request WHERE request_id = idNone[i])));
+		IF(timeTilNow >  expired) THEN UPDATE request SET status = 'expired' WHERE request_id = idNone[i];
+		ELSEIF(timeTilNow >  remind2 ) THEN UPDATE request SET status = 'remind2' WHERE request_id = idNone[i];	
+		END IF;
+	END LOOP;
+
+	--check requests have status 'remind2'
+	idRemind2 = (SELECT ARRAY(SELECT request_id FROM request WHERE status = 'remind2'));
+	n = (SELECT count(*) FROM request WHERE status = 'remind2'); --count none status request
+	FOR i in 0..n-1 LOOP
+		timeTilNow = (SELECT (CURRENT_TIMESTAMP - (SELECT updated_at FROM request WHERE request_id = idNone[i])));
+		IF(timeTilNow >  expired) THEN UPDATE request SET status = 'expired' WHERE request_id = idNone[i];
+		END IF;
+	END LOOP;
+END;
+$$;
+
+
+--
 -- Name: contain_routing(double precision, double precision, double precision, double precision); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -153,6 +200,69 @@ $$;
 
 
 --
+-- Name: create_new_way(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION create_new_way() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE ab_trip_id1 integer;
+DECLARE lat1 double precision;
+DECLARE long1 double precision;
+DECLARE lat2 double precision;
+DECLARE long2 double precision;
+DECLARE source_name1 text;
+DECLARE target_name1 text;
+BEGIN
+	ab_trip_id1 = (SELECT abstract_trip_id FROM ways WHERE abstract_trip_id = NEW.abstract_trip_id);
+	
+	long1 = (SELECT ST_X(point::geometry) FROM location WHERE location_id = NEW.start_point);
+	lat1 = (SELECT ST_Y(point::geometry) FROM location WHERE location_id = NEW.start_point);
+
+	long2 = (SELECT ST_X(point::geometry) FROM location WHERE location_id = NEW.end_point);
+	lat2 = (SELECT ST_Y(point::geometry) FROM location WHERE location_id = NEW.end_point);
+
+	source_name1 = (SELECT address FROM location WHERE location_id = NEW.start_point);
+	target_name1 = (SELECT address FROM location WHERE location_id = NEW.end_point);
+
+	IF pg_trigger_depth() <> 1 THEN
+		RETURN NEW;
+	END IF;
+
+	IF ab_trip_id1 = NEW.abstract_trip_id THEN 
+		UPDATE ways set x1 = long1, y1 = lat1, x2 = long2, y2 = lat2, the_geom = (SELECT ST_GeomFromText('LINESTRING('||long1||' '||lat1||','||long2||' '||lat2||')',4269)), 
+		source = NEW.start_point, target = NEW.end_point, name = source_name1 || ' - ' || target_name1 
+		WHERE abstract_trip_id = ab_trip_id1;
+		RETURN NEW;
+	ELSE
+		INSERT INTO ways(abstract_trip_id, class_id, x1, y1, x2, y2, the_geom, source, target, name) 
+		VALUES(NEW.abstract_trip_id, 1, long1, lat1, long2, lat2,(SELECT ST_GeomFromText('LINESTRING('||long1||' '||lat1||','||long2||' '||lat2||')',4269)), 
+		NEW.start_point, NEW.end_point, source_name1 || ' - ' || target_name1 );
+		RETURN NEW;
+	END IF;
+END;
+$$;
+
+
+--
+-- Name: createlocation(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION createlocation(j integer, k integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    BEGIN
+      FOR i in j..k LOOP
+	insert into location(radius, location_type, country, city, street, address, point) values(1.5, 1, 'Việt Nam', '', '', (select address from map2 where id = i),
+	ST_SetSRID(ST_MakePoint((select longitude from map2 where id = i),(select latitude from map2 where id = i)), 4269));
+	
+      END LOOP;
+    END;
+    $$;
+
+
+--
 -- Name: estimate_time(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -172,6 +282,100 @@ BEGIN
 	RETURN NEW;
 END;
 $$;
+
+
+--
+-- Name: getdistance(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION getdistance(i integer) RETURNS double precision
+    LANGUAGE plpgsql
+    AS $$
+	Declare distance double precision;
+        BEGIN
+            distance = ST_Distance_Sphere((select point from location inner join abstract_trip on location.location_id = abstract_trip.start_point where abstract_trip_id = i), 
+            (select point from location inner join abstract_trip on location.location_id = abstract_trip.end_point where abstract_trip_id = i));
+            RETURN distance;
+        END;
+$$;
+
+
+--
+-- Name: insert_abstract(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_abstract(m integer, n integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+   
+    BEGIN
+      FOR i in 1..20 LOOP
+		insert into abstract_trip(category_id, start_point, end_point) values(i, m, n);
+      END LOOP;
+    END;
+    $$;
+
+
+--
+-- Name: insert_abstract_trip(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_abstract_trip(m integer, n integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    DECLARE j integer;
+    DECLARE k integer;
+    BEGIN
+      FOR i in 1..20 LOOP
+	FOR j in m..n-1 LOOP
+		
+			insert into abstract_trip(category_id, start_point, end_point) values(i, j, j+1);
+		
+	END LOOP;
+      END LOOP;
+    END;
+    $$;
+
+
+--
+-- Name: insert_abstract_trip1(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_abstract_trip1(m integer, n integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    DECLARE j integer;
+    DECLARE k integer;
+    BEGIN
+      FOR i in 1..20 LOOP
+	FOR j in m/5..n/5-2 LOOP
+		
+			insert into abstract_trip(category_id, start_point, end_point) values(i, m, 5*j+4);
+		
+	END LOOP;
+      END LOOP;
+    END;
+    $$;
+
+
+--
+-- Name: insert_map2(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_map2(m integer, n integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    
+    BEGIN
+      
+	INSERT INTO map2(address) select address from map1 where id between m and n;
+      
+    END;
+    $$;
 
 
 --
@@ -264,7 +468,7 @@ $$;
 -- Name: pgr_dijkstra_fromatob(character varying, double precision, double precision, double precision, double precision); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION pgr_dijkstra_fromatob(tbl character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT abstract_trip_id integer, OUT name text, OUT heading double precision, OUT cost double precision, OUT geom geometry, OUT geom_text text) RETURNS SETOF record
+CREATE FUNCTION pgr_dijkstra_fromatob(tbl character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT gid integer, OUT name text, OUT heading double precision, OUT cost double precision, OUT geom geometry) RETURNS SETOF record
     LANGUAGE plpgsql STRICT
     AS $$
 DECLARE
@@ -316,17 +520,126 @@ BEGIN
 			INTO heading;
 
 		-- Return record
-                seq                  := seq + 1;
-                abstract_trip_id     := rec.abstract_trip_id;
-                name                 := rec.name;
-                cost                 := rec.cost;
-                geom                 := rec.the_geom;
-                geom_text            := st_astext(rec.the_geom);
+                seq     := seq + 1;
+                gid     := rec.abstract_trip_id;
+                name    := rec.name;
+                cost    := rec.cost;
+                geom    := rec.the_geom;
                 RETURN NEXT;
         END LOOP;
         RETURN;
 END;
 $$;
+
+
+--
+-- Name: settime(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION settime(id integer, speed integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      UPDATE abstract_trip SET duration = (( ''||2 * cast(getDistance(id)*3600/(speed * 1000) as bigint)||' seconds')::interval::time without time zone) where abstract_trip_id = id;
+    END;
+    $$;
+
+
+--
+-- Name: update_location(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION update_location() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE numb int[];
+DECLARE n int;
+DECLARE i int;
+BEGIN
+	numb = (SELECT ARRAY(SELECT location_id FROM location WHERE longitude is not null));
+	n = (SELECT COUNT(*) FROM location WHERE longitude is not null);
+	FOR i in 0..n-1 LOOP
+		UPDATE location SET point =  (ST_SetSRID(ST_MakePoint((SELECT longitude FROM location WHERE location_id = numb[i]),
+								     (SELECT latitude FROM location WHERE location_id = numb[i])), 4269)) 
+		WHERE location_id = numb[i];
+	END LOOP;
+END;
+$$;
+
+
+--
+-- Name: updatetime(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION updatetime() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    DECLARE j integer;
+    BEGIN
+      FOR i in 1..10 LOOP
+	CASE
+	WHEN i = 1 THEN FOR j in 661..668 LOOP 
+		PERFORM setTime(j, 60);
+		END LOOP;
+	WHEN i = 2 THEN FOR j in 669..676 LOOP 
+		PERFORM setTime(j, 57);
+		END LOOP;
+	WHEN i = 3 THEN FOR j in 677..684 LOOP 
+		PERFORM setTime(j, 55);
+		END LOOP;
+	WHEN i = 4 THEN FOR j in 685..692 LOOP 
+		PERFORM setTime(j, 52);
+		END LOOP;
+	WHEN i = 5 THEN FOR j in 693..700 LOOP 
+		PERFORM setTime(j, 50);
+		END LOOP;
+	WHEN i = 6 THEN FOR j in 701..708 LOOP 
+		PERFORM setTime(j, 48);
+		END LOOP;
+	WHEN i = 7 THEN FOR j in 709..716 LOOP 
+		PERFORM setTime(j, 45);
+		END LOOP;
+	WHEN i = 8 THEN FOR j in 717..724 LOOP 
+		PERFORM setTime(j, 42);
+		END LOOP;
+	WHEN i = 9 THEN FOR j in 725..732 LOOP 
+		PERFORM setTime(j, 40);
+		END LOOP;
+	ELSE FOR j in 733..740 LOOP 
+		PERFORM setTime(j, 37);
+		END LOOP;
+	END CASE;
+      END LOOP;
+    END;
+    $$;
+
+
+--
+-- Name: updatetime(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION updatetime(m integer, n integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE i integer;
+    BEGIN
+      FOR i in m..n LOOP
+	CASE
+	WHEN (i % 10) = 1 THEN PERFORM setTime(i, 60);
+	WHEN (i % 10) = 2 THEN PERFORM setTime(i, 35);
+	WHEN (i % 10) = 3 THEN PERFORM setTime(i, 37);
+	WHEN (i % 10) = 4 THEN PERFORM setTime(i, 40);
+	WHEN (i % 10) = 5 THEN PERFORM setTime(i, 42);
+	WHEN (i % 10) = 6 THEN PERFORM setTime(i, 45);
+	WHEN (i % 10) = 7 THEN PERFORM setTime(i, 47);
+	WHEN (i % 10) = 8 THEN PERFORM setTime(i, 50);
+	WHEN (i % 10) = 9 THEN PERFORM setTime(i, 52);
+	ELSE PERFORM setTime(i, 55);
+	END CASE;
+      END LOOP;
+    END;
+    $$;
 
 
 SET default_tablespace = '';
@@ -338,11 +651,13 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE abstract_trip (
-    ab_trip_id integer NOT NULL,
+    abstract_trip_id integer NOT NULL,
     category_id integer,
     start_point integer,
     end_point integer,
-    duration time without time zone
+    duration time without time zone,
+    estimate_cost double precision,
+    is_persistence boolean
 );
 
 
@@ -362,7 +677,7 @@ CREATE SEQUENCE abstract_trip_ab_trip_id_seq
 -- Name: abstract_trip_ab_trip_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE abstract_trip_ab_trip_id_seq OWNED BY abstract_trip.ab_trip_id;
+ALTER SEQUENCE abstract_trip_ab_trip_id_seq OWNED BY abstract_trip.abstract_trip_id;
 
 
 --
@@ -447,8 +762,10 @@ CREATE TABLE location (
     country character varying(30),
     city character varying(30),
     street character varying(30),
-    address character varying(60),
-    point geometry(Point,4269)
+    address character varying(150),
+    point geometry(Point,4269),
+    longitude double precision,
+    latitude double precision
 );
 
 
@@ -469,6 +786,72 @@ CREATE SEQUENCE location_location_id_seq
 --
 
 ALTER SEQUENCE location_location_id_seq OWNED BY location.location_id;
+
+
+--
+-- Name: map2; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE map2 (
+    id integer NOT NULL,
+    latitude double precision,
+    longitude double precision,
+    address character varying(120) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: map2_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE map2_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: map2_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE map2_id_seq OWNED BY map2.id;
+
+
+--
+-- Name: maps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE maps (
+    id integer NOT NULL,
+    latitude double precision,
+    longitude double precision,
+    address character varying(120),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: maps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE maps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: maps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE maps_id_seq OWNED BY maps.id;
 
 
 --
@@ -570,13 +953,13 @@ ALTER SEQUENCE request_request_id_seq OWNED BY request.request_id;
 --
 
 CREATE TABLE schedule (
+    schedule_id integer NOT NULL,
+    estimate_time time without time zone,
     request_id integer,
     level character varying(15),
-    route geometry(MultiLineString,4269),
+    abstract_trips text,
     status character varying(15),
-    estimate_time integer,
-    schedule_id integer NOT NULL,
-    abstract_trips text
+    route geometry(MultiLineString,4269)
 );
 
 
@@ -647,10 +1030,11 @@ ALTER SEQUENCE supplier_s_id_seq OWNED BY supplier.supplier_id;
 
 CREATE TABLE trip (
     trip_id bigint NOT NULL,
-    vehicle_id character varying(30) NOT NULL,
-    ab_trip_id bigint,
+    vehicle_id integer,
+    abstract_trip_id bigint,
     schedule_id integer,
-    sequent smallint
+    sequent smallint,
+    depature_time timestamp with time zone
 );
 
 
@@ -821,10 +1205,10 @@ CREATE TABLE ways (
 
 
 --
--- Name: ab_trip_id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: abstract_trip_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY abstract_trip ALTER COLUMN ab_trip_id SET DEFAULT nextval('abstract_trip_ab_trip_id_seq'::regclass);
+ALTER TABLE ONLY abstract_trip ALTER COLUMN abstract_trip_id SET DEFAULT nextval('abstract_trip_ab_trip_id_seq'::regclass);
 
 
 --
@@ -846,6 +1230,20 @@ ALTER TABLE ONLY invoices ALTER COLUMN invoice_id SET DEFAULT nextval('invoices_
 --
 
 ALTER TABLE ONLY location ALTER COLUMN location_id SET DEFAULT nextval('location_location_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY map2 ALTER COLUMN id SET DEFAULT nextval('map2_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY maps ALTER COLUMN id SET DEFAULT nextval('maps_id_seq'::regclass);
 
 
 --
@@ -909,7 +1307,7 @@ ALTER TABLE ONLY vehicle_category ALTER COLUMN id SET DEFAULT nextval('vehicle_c
 --
 
 ALTER TABLE ONLY abstract_trip
-    ADD CONSTRAINT abstract_trip_pkey PRIMARY KEY (ab_trip_id);
+    ADD CONSTRAINT abstract_trip_pkey PRIMARY KEY (abstract_trip_id);
 
 
 --
@@ -934,6 +1332,22 @@ ALTER TABLE ONLY invoices
 
 ALTER TABLE ONLY location
     ADD CONSTRAINT location_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: maps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY maps
+    ADD CONSTRAINT maps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: maps_pkey2; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY map2
+    ADD CONSTRAINT maps_pkey2 PRIMARY KEY (id);
 
 
 --
@@ -981,7 +1395,7 @@ ALTER TABLE ONLY supplier
 --
 
 ALTER TABLE ONLY trip
-    ADD CONSTRAINT trip_pkey PRIMARY KEY (trip_id, vehicle_id);
+    ADD CONSTRAINT trip_pkey PRIMARY KEY (trip_id);
 
 
 --
@@ -1074,13 +1488,6 @@ CREATE UNIQUE INDEX ways_gid_idx ON ways USING btree (abstract_trip_id);
 
 
 --
--- Name: check_category; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER check_category AFTER INSERT OR UPDATE ON trip FOR EACH ROW EXECUTE PROCEDURE check_category();
-
-
---
 -- Name: check_point; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -1088,10 +1495,10 @@ CREATE TRIGGER check_point BEFORE INSERT OR UPDATE ON trip FOR EACH ROW EXECUTE 
 
 
 --
--- Name: estimate_time; Type: TRIGGER; Schema: public; Owner: -
+-- Name: create_new_way; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER estimate_time AFTER INSERT OR DELETE OR UPDATE ON trip FOR EACH ROW EXECUTE PROCEDURE estimate_time();
+CREATE TRIGGER create_new_way AFTER INSERT OR UPDATE ON abstract_trip FOR EACH ROW EXECUTE PROCEDURE create_new_way();
 
 
 --
@@ -1127,6 +1534,14 @@ ALTER TABLE ONLY invoices
 
 
 --
+-- Name: invoice_schedule_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY invoices
+    ADD CONSTRAINT invoice_schedule_id_fkey FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id);
+
+
+--
 -- Name: invoice_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1156,6 +1571,14 @@ ALTER TABLE ONLY request
 
 ALTER TABLE ONLY schedule
     ADD CONSTRAINT schedule_request_id_fkey FOREIGN KEY (request_id) REFERENCES request(request_id);
+
+
+--
+-- Name: trip_schedule_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trip
+    ADD CONSTRAINT trip_schedule_id_fkey FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id);
 
 
 --
@@ -1203,4 +1626,6 @@ INSERT INTO schema_migrations (version) VALUES ('20151105023751');
 INSERT INTO schema_migrations (version) VALUES ('20151105024928');
 
 INSERT INTO schema_migrations (version) VALUES ('20151105025317');
+
+INSERT INTO schema_migrations (version) VALUES ('20160328132848');
 

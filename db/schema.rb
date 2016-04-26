@@ -18,11 +18,12 @@ ActiveRecord::Schema.define(version: 20151105025317) do
   enable_extension "postgis"
   enable_extension "pgrouting"
 
-  create_table "abstract_trip", primary_key: "ab_trip_id", force: :cascade do |t|
+  create_table "abstract_trip", primary_key: "abstract_trip_id", force: :cascade do |t|
     t.integer "category_id"
     t.integer "start_point"
     t.integer "end_point"
     t.time    "duration"
+    t.string  "type_of_trip", limit: 15
   end
 
   create_table "customer", primary_key: "customer_id", force: :cascade do |t|
@@ -48,6 +49,22 @@ ActiveRecord::Schema.define(version: 20151105025317) do
 
 # Could not dump table "location" because of following StandardError
 #   Unknown type 'geometry(Point,4269)' for column 'point'
+
+  create_table "map2", force: :cascade do |t|
+    t.float    "latitude"
+    t.float    "longitude"
+    t.string   "address",    limit: 120, null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "maps", force: :cascade do |t|
+    t.float    "latitude"
+    t.float    "longitude"
+    t.string   "address",    limit: 120
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "notifications", primary_key: "notification_id", force: :cascade do |t|
     t.string   "message"
@@ -157,6 +174,7 @@ ActiveRecord::Schema.define(version: 20151105025317) do
   add_foreign_key "abstract_trip", "location", column: "start_point", primary_key: "location_id", name: "abstract_trip_start_point_fkey"
   add_foreign_key "abstract_trip", "vehicle_category", column: "category_id", name: "abstract_trip_category_id_fkey"
   add_foreign_key "invoices", "request", primary_key: "request_id", name: "invoice_request_id_fkey"
+  add_foreign_key "invoices", "schedule", primary_key: "schedule_id", name: "invoice_schedule_id_fkey"
   add_foreign_key "invoices", "supplier", primary_key: "supplier_id", name: "invoice_supplier_id_fkey"
   add_foreign_key "invoices", "vehicle", primary_key: "vehicle_id", name: "invoice_vehicle_id_fkey"
   add_foreign_key "request", "customer", primary_key: "customer_id", name: "request_cus_id_fkey"
