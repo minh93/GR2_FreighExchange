@@ -43,8 +43,15 @@
           <td><%= schedule.level %></td>
           <td></td>
           <td></td>
-          <td><%= button_to "Process to supplier", customer_schedule_trips_path(schedule) %></td>
-          <td></td>
+          <td>
+            <% if schedule.trips.count == 0 && schedule.invoices.count == 0 %>
+              <%= button_to "Process to supplier", customer_schedule_trips_path(schedule) %>
+            <% else %>
+              <%= button_to "Accept", customer_schedule_path(schedule), method: :patch %>
+            <% end %>
+          </td>
+          <td>            
+          </td>
         </tr>
         <% end %>
       </tbody>

@@ -26,7 +26,7 @@ Rails.application.routes.draw do
   namespace :customer do
     resources :requests
     resources :requests do
-      resources :schedules, only: [:index]
+      resources :schedules, only: [:index, :update]
     end
     resources :schedules do
       resources :trips, only: [:create]

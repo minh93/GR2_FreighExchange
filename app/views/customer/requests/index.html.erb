@@ -37,11 +37,11 @@
             <span><%= link_to "", customer_request_schedules_path(request), class: "glyphicon glyphicon-road" %></span>
           </td>
           <td>
-            <%= link_to "", customer_request_path(request), class: "glyphicon glyphicon-eye-open" %>&nbsp&nbsp          
+            <%= link_to "", customer_request_path(request), class: "glyphicon glyphicon-eye-open" %>&nbsp&nbsp
             <%= link_to "", customer_request_path(request), method: :delete, class: "glyphicon glyphicon-trash", 
             :data => {confirm: "Delete this request, your action can not undo?"} %>
           </td>
-          <td></td>
+          <td><%= request.status %></td>
         </tr>
         <% end %>        
       </tbody>

@@ -5,7 +5,7 @@ class Request < ActiveRecord::Base
   after_create :create_notification
   after_create :auto_find_best_ways
 
-  scope :opened, -> {where status: "none"}
+  scope :opened, -> {where status: "open"}
   scope :get_all, -> {where.not status: "deleted"}
 
   belongs_to :customer
@@ -13,6 +13,11 @@ class Request < ActiveRecord::Base
   has_many :notifications, as: :targetable
   has_many :schedules
 
+  def self.check_status_request
+    ActiveRecord::Base.connection.execute("SELECT check_request_time('2 days', '4 days', '6 days')")
+  end
+
+  private
   def create_notification
     user_customer_id = Customer.find_by_customer_id(self.customer_id).user_id    
     self.notifications.create! user_id: user_customer_id, 
@@ -21,17 +26,13 @@ class Request < ActiveRecord::Base
     is_read: false
   end
 
-  def self.check_status_request
-    ActiveRecord::Base.connection.execute("SELECT check_request_time('2 days', '4 days', '6 days')")
-  end
-
-  #FIXME: Background job, catch exception
+  #FIXME: Background job
   def auto_find_best_ways
     result_1 = DAL.containRouting(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)
     user_customer_id = Customer.find_by_customer_id(self.customer_id).user_id    
     if result_1 != 0
       result_2 = DAL.pgrDijkstraFromAtoB(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)      
-      #Create and save schedule to db, level SYSTEM, status none
+      #Create and save schedule to db, level SYSTEM, status open
       #FIXME add more infomation for schedule, time ...
       tem_array_abstract_trip_id = Array.new
       
