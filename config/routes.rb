@@ -18,10 +18,9 @@ Rails.application.routes.draw do
   end
 
   namespace :supplier do
-    get "requests" => "home#index"
     post "approve_request" => "requests#approve"
     resources :vehicles
-    resources :requests, only: [:show]    
+    resources :requests, only: [:show, :index]    
   end
 
   namespace :customer do

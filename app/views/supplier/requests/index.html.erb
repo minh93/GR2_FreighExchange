@@ -1,0 +1,48 @@
+<script type="text/javascript">
+  $(document).ready(function() { 
+    $("#data-table").tablesorter(); 
+  }); 
+</script>
+<div class="container" id="app-area">
+  <div class="row">
+    <div class="button-bar">
+      <a class="btn btn-default" href="#" role="button">Link</a>
+      <button class="btn btn-default" type="submit">Button</button>
+      <input class="btn btn-default" type="button" value="Input">
+      <input class="btn btn-default" type="submit" value="Submit">
+    </div>
+  </div>
+  <section class="row">
+    <div class="table-name">
+      <span>All requests</span>
+    </div>
+    <div class="table-content">
+      <table id="data-table" class="table table-striped tablesorter">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @trips.each do |trip| %> 
+          <tr>
+            <td><%= trip.id %></td>
+            <td><%= trip.schedule.level %></td>
+            <td><%= trip.abstract_trip.StartPoint.address %></td>
+            <td><%= trip.abstract_trip.EndPoint.address %></td>
+            <td>
+              <%= link_to "", supplier_request_path(trip), class: "glyphicon glyphicon-eye-open" %>&nbsp
+              <span class="glyphicon glyphicon-pencil"></span>
+            </td>            
+          </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
