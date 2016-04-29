@@ -30,6 +30,8 @@ class RequestDispatcherController < ApplicationController
         @message = "Unauthorized request."
         render "error_pages/error"
       end
+    elsif app_name == "mail_box"
+      redirect_to notification_index_path
     else
       @error_code = "###"
       @message = "Application currently developing."

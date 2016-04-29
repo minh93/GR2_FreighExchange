@@ -1,5 +1,4 @@
 <div class="container-fluid ">
-  <br>
   <section class="row">
     <section class="col-md-8">
       <section class="row">
@@ -25,6 +24,15 @@
           </div>
           <div class="app-icon-title">
             <p>Tracking</p>
+          </div>
+        </div>
+        <div class="col-md-2 app-icon" >
+          <div class="app-icon-img">
+            <%= link_to image_tag("img_message.png", id: "application-icon"), application_path(app_name: "mail_box")  %>
+            <span class="notification-bubble"><%= @messages.count %></span>
+          </div>
+          <div class="app-icon-title">
+            <p>Mail box</p>
           </div>
         </div>
      <!--    <div class="col-md-2 app-icon" >

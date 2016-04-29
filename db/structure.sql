@@ -416,11 +416,11 @@ DECLARE
 BEGIN
 	-- Find nearest node in line
 	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
-			|| x1 || ' ' || y1 || ')'',4326)::geography, point::geography, 100) LIMIT 1' INTO start_point;
+			|| x1 || ' ' || y1 || ')'',4269)::geography, point::geography, 100) LIMIT 1' INTO start_point;
 	SELECT source  into source_val FROM ways WHERE start_point.point = ST_Startpoint(the_geom);
 	
 	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
-			|| x2 || ' ' || y2 || ')'',4326)::geography, point::geography, 100) LIMIT 1' INTO end_point;
+			|| x2 || ' ' || y2 || ')'',4269)::geography, point::geography, 100) LIMIT 1' INTO end_point;
 	SELECT target into target_val FROM ways WHERE end_point.point = ST_EndPoint(the_geom);	
 
 	-- Shortest path query (TODO: limit extent by BBOX) 
@@ -728,7 +728,8 @@ CREATE TABLE invoices (
     status character varying(15),
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    message character varying(500)
+    message character varying(500),
+    trip_id integer
 );
 
 

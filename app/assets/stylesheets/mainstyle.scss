@@ -5,6 +5,18 @@
 
 .app-icon{
   margin-left: 10px;
+  width: 18.667%;
+}
+
+.notification-bubble{
+  position: absolute;
+  top: 95px;
+  left: 115px;
+  background-color: rgb(212, 19, 13);
+  color: rgb(255, 255, 255);
+  border-radius: 3px;
+  padding: 1px 3px;
+  font: 20px Verdana;
 }
 
 .simple-calendar .day{ 
