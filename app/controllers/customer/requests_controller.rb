@@ -49,8 +49,8 @@ class Customer::RequestsController < Customer::BaseController
         @request.distance_estimate = distance.to_i
       end
 
-      #Set request status = 'none'      
-      @request.status = "none"
+      #Set request status = 'open'      
+      @request.status = "open"
 
       request_is_valid = true
     rescue => exception

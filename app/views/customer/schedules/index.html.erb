@@ -41,16 +41,25 @@
         <tr>
           <td><%= schedule.id %></td>
           <td><%= schedule.level %></td>
-          <td></td>
-          <td></td>
+          <td>
+            Arrived time
+          </td>
+          <td>
+            <% if schedule.invoices.count != 0 %>
+              Cost: <%= schedule.invoices.sum(:offer_price) %>
+            <% end %>
+          </td>
           <td>
             <% if schedule.trips.count == 0 && schedule.invoices.count == 0 %>
               <%= button_to "Process to supplier", customer_schedule_trips_path(schedule) %>
-            <% else %>
+            <% elsif schedule.invoices.count == schedule.abstract_trips.count %>
               <%= button_to "Accept", customer_schedule_path(schedule), method: :patch %>
+            <% else %>
+              <button>Processing</button>
             <% end %>
           </td>
-          <td>            
+          <td>
+            <%= schedule.status %>
           </td>
         </tr>
         <% end %>
