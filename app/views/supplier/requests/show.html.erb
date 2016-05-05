@@ -128,6 +128,15 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbG
     <div class="form-group container">
       <div class="row">
         <div class="col-md-4">
+          <label>Assign vehicle:</label>
+        </div>
+        <div class="col-md-4">
+          <% vehicle_category = current_user.get_detailed_info.vehicles.available.map { |vehicle| [vehicle.vehicle_number, vehicle.id] } %>
+          <%= select_tag :vehicle_id, options_for_select(vehicle_category, 0), {class: "form-control"} %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
           <label>Offer price:</label>
         </div>
         <div class="col-md-4">

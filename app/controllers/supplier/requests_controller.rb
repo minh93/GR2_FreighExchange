@@ -20,10 +20,13 @@ class Supplier::RequestsController < Supplier::BaseController
       flash[:danger] = "No request found"
       redirect_to supplier_requests_path
     else
+      trip.vehicle_id = params[:vehicle_id]
+      trip.save
+
       newInvoice = request.invoices.build
-      #Get supplier ID
       newInvoice.supplier_id = current_user.get_detailed_info.id
       newInvoice.trip_id = trip.id
+      newInvoice.vehicle_id = params[:vehicle_id]
       newInvoice.schedule_id = trip.schedule_id
       newInvoice.offer_price = params[:offer_price]
       newInvoice.supplier_id = Supplier.find_by_user_id(current_user.id).supplier_id

@@ -222,18 +222,14 @@
     <thead>
       <tr>
         <th>Supplier</th>
-        <th>Offer price</th>        
-        <th>Action</th>
+        <th>Offer price</th>
       </tr>
     </thead>
     <tbody>
       <% @request.invoices.each do |invoice| %>
       <tr>
         <td><%= invoice.supplier.name %></td>
-        <td><%= invoice.offer_price %></td>
-        <td>
-          <button>OK</button>
-        </td>
+        <td><%= invoice.offer_price %></td>        
       </tr>
       <% end %>
     </tbody>

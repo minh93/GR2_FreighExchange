@@ -157,7 +157,7 @@
         <div class="col-md-6" >
           <%= f.label :category_id %>
           <% vehicle_category = VehicleCategory.all.map { |type| [type.name, type.id] } %>
-          <%= f.select :category_id, options_for_select(vehicle_category, @request.category_id), {}, {class: "form-control"} %>        
+          <%= f.select :category_id, options_for_select(vehicle_category, @request.category_id), {}, {class: "form-control"} %>
         </div>
         <div class="col-md-6">
           <%= f.label :goods_type %>

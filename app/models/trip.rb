@@ -5,6 +5,7 @@ class Trip < ActiveRecord::Base
 
   belongs_to :schedule
   belongs_to :abstract_trip
+  belongs_to :vehicle
 
   has_many :notifications, as: :targetable
 
