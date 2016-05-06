@@ -102,10 +102,17 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbG
             <option value="TRANSIT">Transit</option>
           </select>
         </div>
-        <input id="start-lat" type="hidden" value = <%= @trip.abstract_trip.StartPoint.latitude %> ></input>
-        <input id="start-lng" type="hidden" value = <%= @trip.abstract_trip.StartPoint.longitude %> ></input>
-        <input id="end-lat" type="hidden" value = <%= @trip.abstract_trip.EndPoint.latitude %> ></input>
-        <input id="end-lng" type="hidden" value = <%= @trip.abstract_trip.EndPoint.longitude %> ></input>
+        <% if @trip.is_reverse_trip %>
+          <input id="start-lat" type="hidden" value = <%= @trip.abstract_trip.EndPoint.latitude %> ></input>
+          <input id="start-lng" type="hidden" value = <%= @trip.abstract_trip.EndPoint.longitude %> ></input>
+          <input id="end-lat" type="hidden" value = <%= @trip.abstract_trip.StartPoint.latitude %> ></input>
+          <input id="end-lng" type="hidden" value = <%= @trip.abstract_trip.StartPoint.longitude %> ></input>
+        <% else %>
+          <input id="start-lat" type="hidden" value = <%= @trip.abstract_trip.StartPoint.latitude %> ></input>
+          <input id="start-lng" type="hidden" value = <%= @trip.abstract_trip.StartPoint.longitude %> ></input>
+          <input id="end-lat" type="hidden" value = <%= @trip.abstract_trip.EndPoint.latitude %> ></input>
+          <input id="end-lng" type="hidden" value = <%= @trip.abstract_trip.EndPoint.longitude %> ></input>
+        <% end %>
         <div id="estimate-way"> 
           <label>About:&nbsp</label><%= @trip.abstract_trip.estimate_cost.nil? ? "Can not estimate " : @trip.abstract_trip.estimate_cost %>km&nbsp
           <label>in&nbsp</label> ... hours

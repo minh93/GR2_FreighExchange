@@ -84,37 +84,6 @@ $$;
 
 
 --
--- Name: check_point(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION check_point() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-DECLARE count1 int;
-
-DECLARE point1 int;
-
-BEGIN
-	IF(NEW.sequent > 1) THEN
-		count1 = NEW.sequent - 1;
-	
-		point1 = (SELECT ab.end_point
-		FROM abstract_trip AS ab 
-		INNER JOIN trip AS t
-		ON ab.ab_trip_id = t.ab_trip_id
-		WHERE t.sequent = count1 AND t.schedule = NEW.schedule);
-
-		IF(point1 <> NEW.start_point) THEN
-			RAISE EXCEPTION 'sequence is not right';
-		END IF;
-		RETURN NEW;
-	END IF;
-	RETURN NEW;
-END 
-$$;
-
-
---
 -- Name: check_request_time(interval, interval, interval); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -402,7 +371,7 @@ $$;
 -- Name: pgr_dijkstra_fromatob(double precision, double precision, double precision, double precision); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION pgr_dijkstra_fromatob(x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT abstract_trip_id integer, OUT name text, OUT heading double precision, OUT cost double precision, OUT geom geometry) RETURNS SETOF record
+CREATE FUNCTION pgr_dijkstra_fromatob(x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT abstract_trip_id integer, OUT name text, OUT heading double precision, OUT cost double precision, OUT reverse_cost double precision, OUT s integer, OUT t integer, OUT geom geometry) RETURNS SETOF record
     LANGUAGE plpgsql STRICT
     AS $$
 DECLARE
@@ -417,21 +386,24 @@ BEGIN
 	-- Find nearest node in line
 	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
 			|| x1 || ' ' || y1 || ')'',4269)::geography, point::geography, 100) LIMIT 1' INTO start_point;
-	SELECT source  into source_val FROM ways WHERE start_point.point = ST_Startpoint(the_geom);
+	SELECT source  into source_val FROM abstract_trip WHERE start_point.point = ST_Startpoint(the_geom);
 	
 	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
 			|| x2 || ' ' || y2 || ')'',4269)::geography, point::geography, 100) LIMIT 1' INTO end_point;
-	SELECT target into target_val FROM ways WHERE end_point.point = ST_EndPoint(the_geom);	
+	SELECT target into target_val FROM abstract_trip WHERE end_point.point = ST_EndPoint(the_geom);	
+
+	raise notice 'source - % and target - %', source_val, target_val;
 
 	-- Shortest path query (TODO: limit extent by BBOX) 
         seq := 0;
-        sql := 'SELECT abstract_trip_id, the_geom, name, cost, source, target, 
+        sql := 'SELECT abstract_trip_id, the_geom, name, cost, reverse_cost, source, target,
 				ST_Reverse(the_geom) AS flip_geom FROM ' ||
-                        'pgr_dijkstra(''SELECT abstract_trip_id as id, source::int, target::int, '
-                                        || 'length::float AS cost FROM ways'', '
+                        'pgr_dijkstra(''SELECT abstract_trip_id as id, source::int, target::int, reverse_cost, '
+                                        || 'length::float AS cost FROM abstract_trip WHERE source NOTNULL AND target NOTNULL AND is_persistence = TRUE'', '
                                         || source_val || ', ' || target_val
-                                        || ' , false, false), ways WHERE id2 = abstract_trip_id ORDER BY seq';
-
+                                        || ' , true, true), abstract_trip WHERE id2 = abstract_trip_id ORDER BY seq';
+	raise notice 'sql - %', sql;
+	
 	-- Remember start point
         point := source_val;
 
@@ -456,75 +428,10 @@ BEGIN
                 abstract_trip_id := rec.abstract_trip_id;
                 name             := rec.name;
                 cost             := rec.cost;
+                reverse_cost	 := rec.reverse_cost;
+                s		 := rec.source;
+                t		 := rec.target;
                 geom             := rec.the_geom;
-                RETURN NEXT;
-        END LOOP;
-        RETURN;
-END;
-$$;
-
-
---
--- Name: pgr_dijkstra_fromatob(character varying, double precision, double precision, double precision, double precision); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION pgr_dijkstra_fromatob(tbl character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT gid integer, OUT name text, OUT heading double precision, OUT cost double precision, OUT geom geometry) RETURNS SETOF record
-    LANGUAGE plpgsql STRICT
-    AS $$
-DECLARE
-        sql     text;
-        rec     record;
-        source_val	integer;
-        target_val	integer;
-        point	integer;
-        start_point record;
-        end_point record;        
-BEGIN
-	-- Find nearest node in line
-	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
-			|| x1 || ' ' || y1 || ')'',4326)::geography, point::geography, 100) LIMIT 1' INTO start_point;
-	SELECT source  into source_val FROM ways WHERE start_point.point = ST_Startpoint(the_geom);
-	
-	EXECUTE 'SELECT point FROM location WHERE ST_DWithin(ST_GeometryFromText(''POINT(' 
-			|| x2 || ' ' || y2 || ')'',4326)::geography, point::geography, 100) LIMIT 1' INTO end_point;
-	SELECT target into target_val FROM ways WHERE end_point.point = ST_EndPoint(the_geom);	
-
-	-- Shortest path query (TODO: limit extent by BBOX) 
-        seq := 0;
-        sql := 'SELECT abstract_trip_id, the_geom, name, cost, source, target, 
-				ST_Reverse(the_geom) AS flip_geom FROM ' ||
-                        'pgr_dijkstra(''SELECT abstract_trip_id as id, source::int, target::int, '
-                                        || 'length::float AS cost FROM '
-                                        || quote_ident(tbl) || ''', '
-                                        || source_val || ', ' || target_val
-                                        || ' , false, false), '
-                                || quote_ident(tbl) || ' WHERE id2 = abstract_trip_id ORDER BY seq';
-
-	-- Remember start point
-        point := source_val;
-
-        FOR rec IN EXECUTE sql
-        LOOP
-		-- Flip geometry (if required)
-		IF ( point != rec.source ) THEN
-			rec.the_geom := rec.flip_geom;
-			point := rec.source;
-		ELSE
-			point := rec.target;
-		END IF;
-
-		-- Calculate heading (simplified)
-		EXECUTE 'SELECT degrees( ST_Azimuth( 
-				ST_StartPoint(''' || rec.the_geom::text || '''),
-				ST_EndPoint(''' || rec.the_geom::text || ''') ) )' 
-			INTO heading;
-
-		-- Return record
-                seq     := seq + 1;
-                gid     := rec.abstract_trip_id;
-                name    := rec.name;
-                cost    := rec.cost;
-                geom    := rec.the_geom;
                 RETURN NEXT;
         END LOOP;
         RETURN;
@@ -657,7 +564,18 @@ CREATE TABLE abstract_trip (
     end_point integer,
     duration time without time zone,
     estimate_cost double precision,
-    is_persistence boolean
+    is_persistence boolean,
+    name text,
+    length double precision,
+    x1 double precision,
+    y1 double precision,
+    x2 double precision,
+    y2 double precision,
+    the_geom geometry(LineString,4269),
+    source integer,
+    target integer,
+    supplier_id integer,
+    reverse_cost double precision
 );
 
 
@@ -1035,7 +953,8 @@ CREATE TABLE trip (
     abstract_trip_id bigint,
     schedule_id integer,
     sequent smallint,
-    depature_time timestamp with time zone
+    depature_time timestamp with time zone,
+    is_reverse_trip boolean
 );
 
 
@@ -1120,7 +1039,7 @@ CREATE TABLE vehicle (
     cost_per_km real,
     point geometry(Point,4269),
     category_id bigint,
-    s_id integer,
+    supplier_id integer,
     available boolean,
     image character varying(60)
 );
@@ -1440,6 +1359,27 @@ ALTER TABLE ONLY vehicle
 
 
 --
+-- Name: abstract_trip_source_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX abstract_trip_source_idx ON abstract_trip USING btree (source);
+
+
+--
+-- Name: abstract_trip_target_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX abstract_trip_target_idx ON abstract_trip USING btree (target);
+
+
+--
+-- Name: abstract_trip_the_geom_gidx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX abstract_trip_the_geom_gidx ON abstract_trip USING gist (the_geom);
+
+
+--
 -- Name: geom_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1486,13 +1426,6 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 --
 
 CREATE UNIQUE INDEX ways_gid_idx ON ways USING btree (abstract_trip_id);
-
-
---
--- Name: check_point; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER check_point BEFORE INSERT OR UPDATE ON trip FOR EACH ROW EXECUTE PROCEDURE check_point();
 
 
 --
@@ -1611,7 +1544,7 @@ ALTER TABLE ONLY vehicle
 --
 
 ALTER TABLE ONLY vehicle
-    ADD CONSTRAINT vehicle_s_id_fkey FOREIGN KEY (s_id) REFERENCES supplier(supplier_id);
+    ADD CONSTRAINT vehicle_s_id_fkey FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id);
 
 
 --
