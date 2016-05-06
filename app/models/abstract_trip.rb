@@ -6,4 +6,9 @@ class AbstractTrip < ActiveRecord::Base
   belongs_to :supplier
   belongs_to :StartPoint, class_name: "Location", foreign_key: "start_point"
   belongs_to :EndPoint, class_name: "Location", foreign_key: "end_point"
+
+  def getDuration
+    duration = self.duration
+    return duration.hour*3600 + duration.min*60 + duration.sec
+  end
 end

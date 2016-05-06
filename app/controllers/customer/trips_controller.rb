@@ -24,6 +24,17 @@ class Customer::TripsController < Customer::BaseController
       end
     end
 
+    #Update depature time
+    requestDepatureTime = @schedule.request.time
+    trips.each_with_index do |trip, index|      
+      if index == 0
+        trip.depature_time = requestDepatureTime
+      else
+        trip.depature_time = trips[index - 1].depature_time + trip.abstract_trip.getDuration + Trip::DELAY_TIME        
+      end
+      trip.save
+    end
+
     redirect_to customer_requests_path
   end  
 end

@@ -1,5 +1,8 @@
 class Trip < ActiveRecord::Base
   self.table_name = "trip"
+  #Return constant delay time
+  #15 min per trip
+  DELAY_TIME = 300
 
   after_create :create_notification
 
@@ -9,7 +12,7 @@ class Trip < ActiveRecord::Base
 
   has_many :notifications, as: :targetable
 
-  scope :open_trip, ->{joins(:schedule).where(schedule: {status: 'open'})}
+  scope :open_trip, ->{joins(:schedule).where(schedule: {status: 'open'})}  
 
   private
   def create_notification

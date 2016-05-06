@@ -47,7 +47,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbG
   }
   #floating-panel {
     position: absolute;
-    top: 65px;
+    top: 90px;
     left: 4%;
     z-index: 5;
     background-color: #fff;
@@ -114,12 +114,16 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbG
           <input id="end-lng" type="hidden" value = <%= @trip.abstract_trip.EndPoint.longitude %> ></input>
         <% end %>
         <div id="estimate-way"> 
-          <label>About:&nbsp</label><%= @trip.abstract_trip.estimate_cost.nil? ? "Can not estimate " : @trip.abstract_trip.estimate_cost %>km&nbsp
-          <label>in&nbsp</label> ... hours
+          <label>About:&nbsp</label><%= @trip.abstract_trip.length.nil? ? "Can not estimate " : @trip.abstract_trip.length.round(2) %>km&nbsp
+          <label>in&nbsp</label> <%= @trip.abstract_trip.duration.hour %> hours
         </div>
         <div id="vehicle-type"> 
           <label>Vehicle type:&nbsp</label>
           <%= VehicleCategory.find_by_id(@trip.schedule.request.category_id).name %>
+        </div>
+        <div id="depature-time"> 
+          <label>Depature time:&nbsp</label>
+          <%= @trip.depature_time %>
         </div>
       </div>
     </div>
