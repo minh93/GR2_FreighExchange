@@ -33,5 +33,6 @@ Rails.application.routes.draw do
     end
     get "profile" => "profile#show"
     get "tracking" => "tracking#index"
+    get "get_itineary/:schedule_id" => "tracking#get_itineary"
   end
 end

@@ -13,6 +13,72 @@
     padding-top: 10px;
   }
 </style>
+<script type="text/javascript"> 
+          function initialize() {
+            var myLatlng = new google.maps.LatLng(21.0226967,105.8369637);
+            var mapOptions = {
+              zoom: 16,
+              center:  myLatlng,
+              mapTypeId: google.maps.MapTypeId.ROADMAP
+            };            
+            var map = new google.maps.Map(document.getElementById('gmap_canvas'),
+            mapOptions);
+            // Try W3C Geolocation (Preferred)
+            if(navigator.geolocation) {
+              browserSupportFlag = true;
+              navigator.geolocation.getCurrentPosition(function(position) {
+                initialLocation = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+                var marker = new google.maps.Marker({
+                  position: initialLocation,
+                  title:"You are here!"
+                });
+                map.setCenter(initialLocation);
+                marker.setMap(map);
+              }, function() {
+                handleNoGeolocation(browserSupportFlag);
+              });
+            }else {
+              browserSupportFlag = false;
+              handleNoGeolocation(browserSupportFlag);
+            }            
+            //Get all place and draw to map
+            $.getJSON("/customer/get_itineary/<%= Schedule.find_by_request_id(@current_message.targetable_id).id %>", function (data) {
+              if (data) {                
+                  $.each(data, function (index, object) {
+                    var contentString = '<div id = "markerContent">'+
+                      '<p>' + object.address + '</p>' + '</div>';
+                    
+                    var image = {url:'<%= asset_path("img_flag.png") %>',                      
+                        scaledSize: new google.maps.Size(50, 50),                        
+                        origin: new google.maps.Point(0,0),                        
+                        anchor: new google.maps.Point(0, 32)};
+                    var myLatLng = new google.maps.LatLng(object.latitude, object.longitude);
+                    var infowindow = new google.maps.InfoWindow({
+                        content: contentString,
+                         maxWidth: 100
+                    });
+                    var foodMarker = new google.maps.Marker({
+                        position: myLatLng,
+                        map: map,
+                        icon: image,
+                        title: object.address                        
+                    });
+                    google.maps.event.addListener(foodMarker, 'click', function() {
+                    infowindow.open(map,foodMarker);
+                    });
+                  });
+              } else {
+              }
+            });
+          }// End load script
+          function loadScript() {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbGAxusiF90&callback=initialize';
+          document.body.appendChild(script);
+          }
+          window.onload = loadScript;
+        </script>
 <div class="container">
   <div class="row">
     <h3>Message box</h3>
@@ -44,15 +110,27 @@
         <h4>#<%= @current_message.id %></h4>
         <h4>Level: <%= @current_message.level %></h4>
       </div>
-      <div class="row">
-        <p>
-          <%= @current_message.message %>
-        </p>
+      <div class="row" >
+        <div class="col-xs-12">
+          <label>Red pin</label><span>&nbsp Current location</span>
+          <label>Green flag</label><span>&nbsp transit stations</span>
+          <p><%= @current_message.message %></p>
+        </div>
+      </div>
+      <div class="row">        
         <% if @current_message.targetable_type == "Request" %>
+          <!-- Visualize request itineary -->
+          <div id="gmap_canvas" style="height:360px;width:600px;"></div>
+        <% end %>        
+      </div>
+      <div class="row">
+      <div class="col-md-4">
+          <% if @current_message.targetable_type == "Request" %>
           <%= link_to "show request", customer_request_path(Request.find_by_request_id @current_message.targetable_id) %>
-        <% elsif @current_message.targetable_type == "Trip" %>
+          <% elsif @current_message.targetable_type == "Trip" %>
           <%= link_to "show request", supplier_request_path(Trip.find_by_trip_id @current_message.targetable_id) %>
-        <% end %>
+          <% end %>
+        </div>
       </div>
     </div>
     </div>
