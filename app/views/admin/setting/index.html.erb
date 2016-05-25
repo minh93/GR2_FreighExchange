@@ -1,0 +1,40 @@
+<div class="container" id="app-area">
+  <section class="row">
+    <div class="col-md-4">
+      <div>
+        <ul class="list-group">
+          <li class="list-group-item">Account infomation</li>
+          <li class="list-group-item">Dapibus ac facilisis in</li>
+          <li class="list-group-item">Morbi leo risus</li>
+          <li class="list-group-item">Porta ac consectetur ac</li>
+          <li class="list-group-item">Vestibulum at eros</li>
+        </ul>
+      </div>
+    </div><!-- End of left column-->
+    <div class="col-md-8 container">
+      <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Action</h3>
+          </div>
+          <div class="panel-body">
+            <div class="">
+              <div class="">
+                <span>Check status:&nbsp</span>
+                <span>
+                  <%= button_to "Check", admin_setting_path(0, admin_action: "checkstatus"), method: :patch, class: "btn btn-default" %>
+                </span>
+              </div>
+              <div>
+                <div>Build Topology:&nbsp</div>
+                <span>
+                  <button class="btn btn-default" >Build</button>
+                </span>
+              </div>              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,6 +1,51 @@
 <div>
-  <h1>This is admin page</h1>
+  <h1>Control panel</h1>
 </div>
-<%= button_to "Run action", admin_checkaction_path %>
-<%= button_to "Check request",admin_checkstatus_path %>
-<%= @results %>
+<div class="container-fluid ">
+  <section class="row">
+    <section class="col-md-8">
+      <section class="row">
+        <div class="col-md-2 app-icon" >
+          <div class="app-icon-img">
+            <%= link_to image_tag("img_admin_dashboard.png", id: "application-icon"), application_path(app_name: "delivery")  %>
+          </div>
+          <div class="app-icon-title">
+            <p>Dashboard</p>
+          </div>
+        </div>
+        <div class="col-md-2 app-icon" >
+          <div class="app-icon-img">
+            <%= link_to image_tag("img_admin_params.png", id: "application-icon"), admin_setting_index_path %>
+          </div>
+          <div class="app-icon-title">
+            <p>Sys config</p>
+          </div>
+        </div>
+        <div class="col-md-2 app-icon" >
+          <div class="app-icon-img">
+            <%= link_to image_tag("img_admin_edit_user.png", id: "application-icon"), admin_users_path %>
+          </div>
+          <div class="app-icon-title">
+            <p>User</p>
+          </div>
+        </div>        
+     <!--    <div class="col-md-2 app-icon" >
+          <div class="app-icon-img">
+            <%= link_to image_tag("img_application.png", id: "application-icon") %>
+          </div>
+          <div class="app-icon-title">
+            <p>More...</p>
+          </div>
+        </div> -->
+      </section>
+    </section>
+    <section class="col-md-4" id="charm-panel">       
+      <div class="col-md-2">
+        <%= month_calendar do |date| %>          
+          <%= date.day %>
+        <% end %>
+      </div>
+    </section>
+  </section>
+</div>
+

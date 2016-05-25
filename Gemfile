@@ -9,6 +9,7 @@ gem "jquery-rails"
 #gem "jquery-ui-rails"
 gem "turbolinks"
 gem "jbuilder", "~> 2.0"
+gem "config"
 
 gem "devise"
 gem "bootstrap-sass", "~> 3.3.5"

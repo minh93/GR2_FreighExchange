@@ -13,14 +13,14 @@ Rails.application.routes.draw do
 
   namespace :admin do
     get "home" => "home#index"
-    post "checkaction" => "home#checkaction"
-    post "checkstatus"=> "home#checkstatus"
+    resources :users, only: [:index, :show, :update]
+    resources :setting, only: [:index, :show, :update]
   end
 
   namespace :supplier do
     post "approve_request" => "requests#approve"
     resources :vehicles
-    resources :requests, only: [:show, :index]    
+    resources :requests, only: [:show, :index]   
   end
 
   namespace :customer do

@@ -26,9 +26,9 @@
           <span class="icon-bar"></span>
         </button>       
         <% if @messages.count != 0 %>
-          <%= link_to image_tag("img_home_with_notice.png"), root_path, class: "navbar-brand", style: "margin-bottom: 10px" %>
+          <%= link_to image_tag("img_home_with_notice.png"), dispatcher_path, class: "navbar-brand", style: "margin-bottom: 10px" %>
         <% else %>
-          <%= link_to image_tag("img_home.png"), root_path, class: "navbar-brand", style: "margin-bottom: 10px" %>
+          <%= link_to image_tag("img_home.png"), dispatcher_path, class: "navbar-brand", style: "margin-bottom: 10px" %>
         <% end %>
       </div>
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">

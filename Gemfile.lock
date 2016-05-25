@@ -62,7 +62,11 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
+    config (1.2.0)
+      activesupport (>= 3.0)
+      deep_merge (~> 1.0, >= 1.0.1)
     debug_inspector (0.0.2)
+    deep_merge (1.0.1)
     devise (3.5.2)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
@@ -177,6 +181,7 @@ DEPENDENCIES
   byebug
   carrierwave
   coffee-rails (~> 4.1.0)
+  config
   devise
   jbuilder (~> 2.0)
   jquery-rails
@@ -194,4 +199,4 @@ DEPENDENCIES
   will_paginate
 
 BUNDLED WITH
-   1.10.6
+   1.11.2

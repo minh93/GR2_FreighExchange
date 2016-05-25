@@ -1,0 +1,14 @@
+<div class="row" >
+  <%= gravatar_for user %>
+  <%= link_to user.email, admin_user_path(user) %>
+  <%= user.email %>
+  <% unless current_user == user %>    
+    <% if !user.blocked? %>
+      | <%= link_to "Block", admin_user_path(user, admin_action: "block"), method: :patch,
+        data: {confirm: "Block this user"} %>
+    <% else %>
+      | <%= link_to "Unblock", admin_user_path(user, admin_action: "block"), method: :patch,
+        data: {confirm: "Unblock this user"} %>
+    <% end %>
+  <% end %>
+</div>
