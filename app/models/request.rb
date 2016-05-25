@@ -5,7 +5,7 @@ class Request < ActiveRecord::Base
   after_create :create_notification
   after_create :auto_find_best_ways
 
-  scope :opened, -> {where status: "open"}
+  scope :opened, -> {where status: ["none", "pending"]}
   scope :get_all, -> {where.not status: "deleted"}
 
   belongs_to :customer

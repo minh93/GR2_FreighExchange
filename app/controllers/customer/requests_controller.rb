@@ -50,7 +50,7 @@ class Customer::RequestsController < Customer::BaseController
       end
 
       #Set request status = 'open'      
-      @request.status = "open"
+      @request.status = "none"
 
       request_is_valid = true
     rescue => exception

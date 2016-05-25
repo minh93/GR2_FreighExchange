@@ -21,4 +21,9 @@ class DAL
       return nil
     end
   end
+
+  #Check request time out
+  def self.checkRequestTimeout
+    ActiveRecord::Base.connection.execute("SELECT check_request_time('1 days','2 days','3 days');")
+  end
 end

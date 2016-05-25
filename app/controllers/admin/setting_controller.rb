@@ -6,6 +6,8 @@ class Admin::SettingController < Admin::BaseController
   def update
     if params[:admin_action] == "checkstatus"
       action_checkstatus
+    elsif params[:admin_action] == "checktimeout"
+      action_checktimeout
     end
   end
 
@@ -33,6 +35,12 @@ class Admin::SettingController < Admin::BaseController
         is_read: false
       end
     end
+    redirect_to admin_setting_index_path
+  end
+
+  def action_checktimeout
+    DAL.checkRequestTimeout()
+    flash[:success] = 'Lorem ipsum dolosit amet'
     redirect_to admin_setting_index_path
   end
 

@@ -20,7 +20,7 @@
           <div class="panel-body">
             <div class="">
               <div class="">
-                <span>Check status:&nbsp</span>
+                <span>Check status & Send notify to customer:&nbsp</span>
                 <span>
                   <%= button_to "Check", admin_setting_path(0, admin_action: "checkstatus"), method: :patch, class: "btn btn-default" %>
                 </span>
@@ -30,7 +30,13 @@
                 <span>
                   <button class="btn btn-default" >Build</button>
                 </span>
-              </div>              
+              </div>
+              <div>
+                <div>Check timeout:&nbsp</div>
+                <span>
+                  <%= button_to "Check", admin_setting_path(0, admin_action: "checktimeout"), method: :patch, class: "btn btn-default" %>
+                </span>
+              </div>
             </div>
           </div>
         </div>
