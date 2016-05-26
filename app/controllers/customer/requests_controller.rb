@@ -1,6 +1,7 @@
 require "GoogleAPI"
-
 class Customer::RequestsController < Customer::BaseController
+  before_action :current_request, only: [:destroy, :update, :show, :edit]
+
   def index
     @requests = current_user.get_detailed_info.
       requests.get_all.order(created_at: :DESC).
@@ -17,7 +18,7 @@ class Customer::RequestsController < Customer::BaseController
   end
 
   def edit
-    @request = Request.find params[:id]
+    
   end
 
   def create
@@ -72,24 +73,12 @@ class Customer::RequestsController < Customer::BaseController
   end
 
   def update
-    @request = Request.find params[:id]
-    # review code
-    @request.update_attribute("time", DateTime.strptime(submit_params[:time], '%m/%d/%Y %H:%M %p'))
-    @request.save
-    respond_to do |format|
-      if @request.update(submit_params)
-        format.html { flash[:success] = 'Your request successfully updated.'
-          redirect_to customer_requests_path }
-        format.json { render :show, status: :ok, location: @user_goal }
-      else
-        format.html { render :edit }
-        format.json { render json: @request.errors, status: :unprocessable_entity }
-      end
+    if params[:customer_action] == "renew"
+      action_renew    
     end
   end
 
-  def destroy
-    @request = Request.find params[:id]
+  def destroy    
     @request.status = "deleted"
     @request.save
     respond_to do |format|
@@ -100,6 +89,15 @@ class Customer::RequestsController < Customer::BaseController
   end
 
   private
+  def action_renew
+    @request.renew
+    flash[:success] = "Your request successfully renew."
+    redirect_to customer_request_path @request
+  end
+
+  def current_request
+    @request = Request.find params[:id]
+  end
 
   def submit_params
     params.require(:request).permit :weight, :goods_type, :height, :length, :capacity, :time, 

@@ -13,8 +13,20 @@ class Request < ActiveRecord::Base
   has_many :notifications, as: :targetable
   has_many :schedules
 
-  def self.check_status_request
-    ActiveRecord::Base.connection.execute("SELECT check_request_time('2 days', '4 days', '6 days')")
+  # def self.check_status_request
+  #   ActiveRecord::Base.connection.execute("SELECT check_request_time('2 days', '4 days', '6 days')")
+  # end
+
+  def is_expired
+    if self.status == "none" || self.status == "pending"
+      return false
+    else
+      return true
+    end
+  end
+
+  def renew
+    update_attributes status: "none"
   end
 
   private

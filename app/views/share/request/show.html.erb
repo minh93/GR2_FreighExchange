@@ -236,3 +236,15 @@
   </table>
   <% end %>
 </div>
+<% if @request.is_expired %>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <%= button_to "Renew", customer_request_path(@request, customer_action: "renew"), method: :patch, class: "btn btn-default" %>
+      </div>
+      <div class="col-md-8">
+        <p>Your request has been expired, try to renew and wait for supplier feedback</p>
+      </div>
+    </div>
+  </div>
+<% end %>
