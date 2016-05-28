@@ -12,7 +12,8 @@ class Trip < ActiveRecord::Base
 
   has_many :notifications, as: :targetable
 
-  scope :open_trip, ->{joins(:schedule).where(schedule: {status: 'open'})}  
+  scope :open_trip, ->{joins(:schedule).where(schedule: {status: 'open'})}
+  scope :available, ->(supplier){joins(:abstract_trip).where(abstract_trip: {supplier_id: supplier.id})}
 
   private
   def create_notification

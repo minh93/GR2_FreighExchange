@@ -37,8 +37,24 @@ class Customer::RequestsController < Customer::BaseController
       start_point = Location.find_nearest_point(@request.start_point_long, @request.start_point_lat)
       end_point = Location.find_nearest_point(@request.end_point_long, @request.end_point_lat)
 
-      @request.start_point = start_point if start_point != nil
-      @request.end_point = end_point if end_point != nil
+      # @request.start_point = start_point if start_point != nil
+      # @request.end_point = end_point if end_point != nil
+
+      if start_point == nil
+        start_address = GoogleAPI.new().getLocationName(@request.start_point_lat, @request.start_point_long)
+        newS = Location.create! address: start_address, latitude: @request.start_point_lat, longitude: @request.start_point_long
+        @request.start_point = newS.id
+      else
+        @request.start_point = start_point
+      end
+
+      if end_point == nil
+        end_address = GoogleAPI.new().getLocationName(@request.end_point_lat, @request.end_point_long)
+        newS = Location.create! address: end_address, latitude: @request.end_point_lat, longitude: @request.end_point_long
+        @request.end_point = newS.id
+      else
+        @request.end_point = end_point
+      end
 
       #Estimate distance by google service
       distance = GoogleAPI.new().distanceEstimate(@request.start_point_lat,
@@ -49,8 +65,7 @@ class Customer::RequestsController < Customer::BaseController
       if !distance.nil?
         @request.distance_estimate = distance.to_i
       end
-
-      #Set request status = 'open'      
+    
       @request.status = "none"
 
       request_is_valid = true
@@ -78,7 +93,7 @@ class Customer::RequestsController < Customer::BaseController
     end
   end
 
-  def destroy    
+  def destroy
     @request.status = "deleted"
     @request.save
     respond_to do |format|

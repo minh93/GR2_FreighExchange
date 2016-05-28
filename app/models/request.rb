@@ -9,6 +9,9 @@ class Request < ActiveRecord::Base
   scope :get_all, -> {where.not status: "deleted"}
 
   belongs_to :customer
+  belongs_to :StartPoint, class_name: "Location", foreign_key: "start_point"
+  belongs_to :EndPoint, class_name: "Location", foreign_key: "end_point"
+  
   has_many :invoices
   has_many :notifications, as: :targetable
   has_many :schedules
@@ -46,6 +49,8 @@ class Request < ActiveRecord::Base
       result_2 = DAL.pgrDijkstraFromAtoB(self.start_point_long, self.start_point_lat, self.end_point_long, self.end_point_lat)      
       #Create and save schedule to db, level SYSTEM, status open
       #FIXME add more infomation for schedule, time ...
+      #Update request status to pending
+      update_attributes status: "pending"
       tem_array_abstract_trip_id = Array.new
       
       result_2.values.each do |item|
@@ -68,20 +73,20 @@ class Request < ActiveRecord::Base
         level: "system",
         is_read: false
     else
-      #Create direct schedule
-      new_trip = AbstractTrip.create!(category_id: self.category_id,
-        start_point: self.start_point,
-        end_point: self.end_point,
-        is_persistence: true)
-      tem_array_abstract_trip_id = Array.new
-      tem_array_abstract_trip_id << new_trip.id
-      self.schedules.create! level: "system",
-        status: "open",
-        abstract_trips: tem_array_abstract_trip_id
-      self.notifications.create! user_id: user_customer_id, 
-        message: "Direct request has been created!", 
-        level: "system",
-        is_read: false
+      #Create direct schedule -> Move to supplier
+    #   new_trip = AbstractTrip.create!(category_id: self.category_id,
+    #     start_point: self.start_point,
+    #     end_point: self.end_point,
+    #     is_persistence: true)
+    #   tem_array_abstract_trip_id = Array.new
+    #   tem_array_abstract_trip_id << new_trip.id
+    #   self.schedules.create! level: "system",
+    #     status: "open",
+    #     abstract_trips: tem_array_abstract_trip_id
+    #   self.notifications.create! user_id: user_customer_id, 
+    #     message: "Direct request has been created!", 
+    #     level: "system",
+    #     is_read: false
     end
   end
 end

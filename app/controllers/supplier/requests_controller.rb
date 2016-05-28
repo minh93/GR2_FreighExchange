@@ -3,13 +3,23 @@ class Supplier::RequestsController < Supplier::BaseController
   before_action :request_is_approved?
 
   def index
-    @breadcrumb = [current_user.role,"Open requests"]
-    @trips = Trip.open_trip.paginate(:page => params[:page], :per_page => 10)
+    @breadcrumb = [current_user.role,"Open requests"]    
+    @supplier = current_user.get_detailed_info
+    @trips = Trip.available(@supplier)
+      .open_trip
+      .paginate(:page => params[:page], :per_page => 10)
+    @requests = Request.where(status: "none")
   end
 
   def show
-    @trip = Trip.find_by_trip_id params[:id]
     @breadcrumb = [current_user.role,"detailed request"]
+    typeOfRequest = params[:type]
+    if typeOfRequest == "request"
+      @request = Request.find_by_request_id(params[:id])
+      render "share/request/show"
+    elsif typeOfRequest == "trip"        
+      @trip = Trip.find_by_trip_id params[:id]
+    end
   end
 
   # Approve request and create invoice record

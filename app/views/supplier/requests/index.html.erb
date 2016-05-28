@@ -1,6 +1,11 @@
 <script type="text/javascript">
   $(document).ready(function() { 
-    $("#data-table").tablesorter(); 
+    $("#data-table-1").tablesorter(); 
+  }); 
+</script>
+<script type="text/javascript">
+  $(document).ready(function() { 
+    $("#data-table-2").tablesorter(); 
   }); 
 </script>
 <div class="container" id="app-area">
@@ -14,10 +19,42 @@
   </div>
   <section class="row">
     <div class="table-name">
-      <span>All requests</span>
+      <span>Customer requests</span>
     </div>
     <div class="table-content">
-      <table id="data-table" class="table table-striped tablesorter">
+      <table id="data-table-1" class="table table-striped tablesorter">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @requests.each do |request| %> 
+          <tr>
+            <td><%= request.id %></td>
+            <td><%= request.customer.name %></td>
+            <td><%= request.StartPoint.address if request.StartPoint != nil %></td>
+            <td><%= request.EndPoint.address if request.EndPoint != nil %></td>
+            <td>
+              <%= link_to "", supplier_request_path(request, type: "request"), class: "glyphicon glyphicon-eye-open" %>&nbsp
+              <span class="glyphicon glyphicon-pencil"></span>
+            </td>            
+          </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="row">
+    <div class="table-name">
+      <span>System requests</span>
+    </div>
+    <div class="table-content">
+      <table id="data-table-2" class="table table-striped tablesorter">
         <thead>
           <tr>
             <th>#</th>
