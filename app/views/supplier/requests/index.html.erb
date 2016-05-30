@@ -72,7 +72,7 @@
             <td><%= trip.abstract_trip.StartPoint.address %></td>
             <td><%= trip.abstract_trip.EndPoint.address %></td>
             <td>
-              <%= link_to "", supplier_request_path(trip), class: "glyphicon glyphicon-eye-open" %>&nbsp
+              <%= link_to "", supplier_request_path(trip, type: "trip"), class: "glyphicon glyphicon-eye-open" %>&nbsp
               <span class="glyphicon glyphicon-pencil"></span>
             </td>            
           </tr>

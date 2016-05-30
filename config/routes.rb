@@ -19,18 +19,20 @@ Rails.application.routes.draw do
 
   namespace :supplier do
     post "approve_request" => "requests#approve"
-    resources :vehicles
+    post "send_proposal" => "requests#send_proposal"
+    resources :vehicles    
     resources :requests, only: [:show, :index]   
   end
 
   namespace :customer do
     resources :requests
+    resources :invoices, only: [:update]
     resources :requests do
       resources :schedules, only: [:index, :update]
     end
     resources :schedules do
       resources :trips, only: [:create]
-    end
+    end    
     get "profile" => "profile#show"
     get "tracking" => "tracking#index"
     get "get_itineary/:schedule_id" => "tracking#get_itineary"

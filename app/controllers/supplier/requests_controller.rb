@@ -16,6 +16,8 @@ class Supplier::RequestsController < Supplier::BaseController
     typeOfRequest = params[:type]
     if typeOfRequest == "request"
       @request = Request.find_by_request_id(params[:id])
+      costPerKm = Vehicle.find_by_category_id(@request.category_id).cost_per_km
+      @estimateCost = (@request.distance_estimate * costPerKm)/1000
       render "share/request/show"
     elsif typeOfRequest == "trip"        
       @trip = Trip.find_by_trip_id params[:id]
@@ -31,7 +33,7 @@ class Supplier::RequestsController < Supplier::BaseController
       redirect_to supplier_requests_path
     else
       trip.vehicle_id = params[:vehicle_id]
-      trip.save
+      trip.save      
 
       newInvoice = request.invoices.build
       newInvoice.supplier_id = current_user.get_detailed_info.id
@@ -44,8 +46,25 @@ class Supplier::RequestsController < Supplier::BaseController
       newInvoice.save
 
       flash[:notice] = "Successful approve request"
-      redirect_to controller: "requests", action: "show", id: trip.id
+      redirect_to controller: "requests", action: "show", id: trip.id, type: "trip"
     end
+  end
+
+  def send_proposal
+    request = Request.find_by_request_id(params[:request_id])    
+    if request.nil?
+      flash[:danger] = "No request found"
+      redirect_to supplier_requests_path
+    else
+      newInvoice = request.invoices.build
+      newInvoice.supplier_id = current_user.get_detailed_info.id
+      newInvoice.offer_price = params[:offer_price]
+      newInvoice.supplier_id = Supplier.find_by_user_id(current_user.id).supplier_id
+      newInvoice.message = params[:message]
+      newInvoice.save
+    end
+      flash[:notice] = "Successful approve request"
+      redirect_to controller: "requests", action: "show", id: request.id, type: "request"
   end
 
   private

@@ -199,16 +199,16 @@
     <span class="col-md-8"><label>Approve this request</label></span>
   </div>
   <div class="row">
-    <%= form_tag("/supplier/approve_request", method: "post", class: "") do %>
+    <%= form_tag("/supplier/send_proposal", method: "post", class: "") do %>
     <%= hidden_field_tag :request_id, @request.id %>
     <div class="form-group container">
       <div class="row">
-        <label>Offer price:</label>
-        <%= text_field_tag(:offer_price) %>
+        <label class="col-md-4">Offer price(estimate):</label>
+        <div class="col-md-8"><%= text_field_tag(:offer_price, @estimateCost) %>VND</div>
       </div>
       <div class="row">
-        <label>Message to customer</label>
-        <%= text_area_tag(:message, "Hi, you're welcome", size: "24x6") %>
+        <label class="col-md-4">Message to customer</label>
+        <div class="col-md-8"><%= text_area_tag(:message, "Hi, you're welcome", size: "24x3") %></div>
       </div>
       <div class="row">
         <%= submit_tag("Approve request", class: "btn btn-default") %>
@@ -223,13 +223,15 @@
       <tr>
         <th>Supplier</th>
         <th>Offer price</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       <% @request.invoices.each do |invoice| %>
       <tr>
         <td><%= invoice.supplier.name %></td>
-        <td><%= invoice.offer_price %></td>        
+        <td><%= invoice.offer_price %></td>
+        <td><%= button_to "Accept", customer_invoice_path(invoice), method: :patch %></td>
       </tr>
       <% end %>
     </tbody>

@@ -55,7 +55,7 @@
             <% elsif schedule.invoices.count == schedule.abstract_trips.count %>
               <%= button_to "Accept", customer_schedule_path(schedule), method: :patch %>
             <% else %>
-              <button>Processing</button>
+              <button>Processing (<%= schedule.invoices.count %> / <%= schedule.abstract_trips.count%>)</button>
             <% end %>
           </td>
           <td>
