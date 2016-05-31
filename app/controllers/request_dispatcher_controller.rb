@@ -42,6 +42,16 @@ class RequestDispatcherController < ApplicationController
         @message = "Unauthorized request."
         render "error_pages/error"
       end
+    elsif app_name == "tracking"
+      if current_user.role == "customer"
+        redirect_to customer_tracking_path
+      elsif current_user.role == "supplier"
+        redirect_to supplier_tracking_path
+      else
+        @error_code = "401"
+        @message = "Unauthorized request."
+        render "error_pages/error"
+      end
     else
       @error_code = "###"
       @message = "Application currently developing."
