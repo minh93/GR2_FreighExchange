@@ -1,0 +1,54 @@
+<div class="row">
+  <div class="table-name">
+    <span>Invoice group by request</span>
+  </div>
+  <div class="table-content">
+    <table id="data-table" class="table table-striped tablesorter">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date create</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @requests.each do |request| %>
+        <tr>
+          <td><%= request.id %></td>
+          <td><%= request.created_at %></td>
+          <td><%= Location.find_by_location_id(request.start_point).address if !Location.find_by_location_id(request.start_point).nil? %></td>
+          <td><%= Location.find_by_location_id(request.end_point).address if !Location.find_by_location_id(request.end_point).nil? %></td>          
+          <td><%= request.status %></td>
+        </tr>
+        <tr>
+          <td>&nbsp</td>
+          <td colspan="4">
+            <table class="table table-striped">
+              <thead>
+                <th>Invoice no</th>
+                <th>Supplier</th>
+                <th>Datecreate</th>
+                <th>Total</th>
+                <th>Status</th>
+              </thead>
+              <tbody>
+                <% request.invoices.each do |invoice| %>
+                <tr>
+                  <td><%= invoice.id %></td>
+                  <td>Supplier</td>
+                  <td><%= invoice.created_at %></td>
+                  <td><%= invoice.offer_price if invoice.offer_price != nil %></td>
+                  <td><%= invoice.status if invoice.status != nil %></td>
+                </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <% end %>        
+      </tbody>
+    </table>
+  </div>
+</div>

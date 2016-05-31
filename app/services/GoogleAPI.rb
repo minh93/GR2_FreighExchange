@@ -25,4 +25,20 @@ class GoogleAPI
       false
     end
   end
+
+  def getLocationName lat, long
+    mapLocationInfoUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=#{lat},#{long}&key=#{@apiKey}"
+    begin
+      url = URI.parse(mapLocationInfoUrl)
+      result = Net::HTTP::get(url)
+      @parsed = JSON.parse(result)
+      if @parsed["status"] == "OK"
+        @locationName = @parsed["results"].first()["formatted_address"]
+      else 
+        @locationName = ""
+      end
+    rescue StandardError => e
+      e
+    end
+  end
 end

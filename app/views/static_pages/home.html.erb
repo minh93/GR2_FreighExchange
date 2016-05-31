@@ -12,7 +12,7 @@
         </div>
         <div class="col-md-2 app-icon" >
           <div class="app-icon-img">
-            <%= link_to image_tag("img_payment.png", id: "application-icon") %>
+            <%= link_to image_tag("img_payment.png", id: "application-icon"), application_path(app_name: "payment") %>
           </div>
           <div class="app-icon-title">
             <p>Payment</p>
@@ -20,7 +20,7 @@
         </div>
         <div class="col-md-2 app-icon" >
           <div class="app-icon-img">
-            <%= link_to image_tag("img_satellite.png", id: "application-icon") %>
+            <%= link_to image_tag("img_satellite.png", id: "application-icon"), application_path(app_name: "tracking") %>
           </div>
           <div class="app-icon-title">
             <p>Tracking</p>

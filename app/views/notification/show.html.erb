@@ -42,7 +42,7 @@
               handleNoGeolocation(browserSupportFlag);
             }            
             //Get all place and draw to map
-            $.getJSON("/customer/get_itineary/<%= Schedule.find_by_request_id(@current_message.targetable_id).id %>", function (data) {
+            $.getJSON("/customer/get_itineary/<%= Schedule.find_by_request_id(@current_message.targetable_id).id if Schedule.find_by_request_id(@current_message.targetable_id) != nil %> ", function (data) {
               if (data) {                
                   $.each(data, function (index, object) {
                     var contentString = '<div id = "markerContent">'+
@@ -128,7 +128,7 @@
           <% if @current_message.targetable_type == "Request" %>
           <%= link_to "show request", customer_request_path(Request.find_by_request_id @current_message.targetable_id) %>
           <% elsif @current_message.targetable_type == "Trip" %>
-          <%= link_to "show request", supplier_request_path(Trip.find_by_trip_id @current_message.targetable_id) %>
+          <%= link_to "show request", supplier_request_path(Trip.find_by_trip_id(@current_message.targetable_id), type: "trip") %>
           <% end %>
         </div>
       </div>

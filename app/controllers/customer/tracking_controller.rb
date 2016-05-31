@@ -1,5 +1,6 @@
 class Customer::TrackingController < Customer::BaseController
   def index
+    @request = Request.all[rand(Request.all.count)]
   end
 
   def get_itineary

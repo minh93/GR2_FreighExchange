@@ -32,6 +32,26 @@ class RequestDispatcherController < ApplicationController
       end
     elsif app_name == "mail_box"
       redirect_to notification_index_path
+    elsif app_name == "payment"
+      if current_user.role == "customer"
+        redirect_to customer_invoices_path
+      elsif current_user.role == "supplier"
+        redirect_to supplier_invoices_path
+      else
+        @error_code = "401"
+        @message = "Unauthorized request."
+        render "error_pages/error"
+      end
+    elsif app_name == "tracking"
+      if current_user.role == "customer"
+        redirect_to customer_tracking_path
+      elsif current_user.role == "supplier"
+        redirect_to supplier_tracking_path
+      else
+        @error_code = "401"
+        @message = "Unauthorized request."
+        render "error_pages/error"
+      end
     else
       @error_code = "###"
       @message = "Application currently developing."

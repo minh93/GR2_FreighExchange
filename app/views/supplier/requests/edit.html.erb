@@ -192,61 +192,54 @@
       </div>
     </div>    
   </div>
-</div>
-<div class="container">
-  <% if @show_approve_form %>
+</div><!-- End of show request location -->
+<div class="container", id="assign-trip">
   <div class="row">
-    <span class="col-md-8"><label>Approve this request</label></span>
+    <span class="col-md-8"><label>Create direct itineary</label></span>
   </div>
   <div class="row">
-    <%= form_tag("/supplier/send_proposal", method: "post", class: "") do %>
+    <%= form_tag("/supplier/update", method: "post", class: "") do %>
     <%= hidden_field_tag :request_id, @request.id %>
     <div class="form-group container">
       <div class="row">
-        <label class="col-md-4">Offer price(estimate):</label>
-        <div class="col-md-8"><%= text_field_tag(:offer_price, @estimateCost) %>VND</div>
+        <div class="col-md-4">
+          <label>Assign vehicle:</label>
+        </div>
+        <div class="col-md-4">
+          <% vehicle_category = current_user.get_detailed_info.vehicles.available.map { |vehicle| [vehicle.vehicle_number, vehicle.id] } %>
+          <%= select_tag :vehicle_id, options_for_select(vehicle_category, 0), {class: "form-control"} %>
+        </div>
       </div>
       <div class="row">
-        <label class="col-md-4">Message to customer</label>
-        <div class="col-md-8"><%= text_area_tag(:message, "Hi, you're welcome", size: "24x3") %></div>
+        <div class="col-md-4">
+          <label>Offer price:</label>
+        </div>
+        <div class="col-md-4">
+          <input type="text" value="<%= @invoice.offer_price %>" class="form-control" disabled >
+        </div>
       </div>
       <div class="row">
-        <%= submit_tag("Approve request", class: "btn btn-default") %>
+        <div class="col-md-4">
+          <label>Message to customer</label>
+        </div>
+        <div class="col-md-4">
+          <%= text_area_tag(:message, "Hi, you're welcome", size: "24x6") %>
+        </div>
       </div>
-    </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label>Available for reverse direction</label>
+        </div>
+        <div class="col-md-4">
+          <%= check_box_tag(:is_persistence, true, false) %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <%= submit_tag("Create itineary", class: "btn btn-default") %>
+        </div>
+      </div>
+    </div>    
     <% end %>
-  </div>  
-  <% end %>
-  <% if current_user.role == "customer" %>
-    <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Supplier</th>
-        <th>Offer price</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @request.invoices.each do |invoice| %>
-      <tr>
-        <td><%= invoice.supplier.name %></td>
-        <td><%= invoice.offer_price %></td>
-        <td><%= button_to "Accept", customer_invoice_path(invoice), method: :patch %></td>
-      </tr>
-      <% end %>
-    </tbody>
-  </table>
-  <% end %>
-</div>
-<% if @request.is_expired %>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-4">
-        <%= button_to "Renew", customer_request_path(@request, customer_action: "renew"), method: :patch, class: "btn btn-default" %>
-      </div>
-      <div class="col-md-8">
-        <p>Your request has been expired, try to renew and wait for supplier feedback</p>
-      </div>
-    </div>
   </div>
-<% end %>
+</div>

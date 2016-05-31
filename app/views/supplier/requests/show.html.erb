@@ -115,7 +115,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbG
         <% end %>
         <div id="estimate-way"> 
           <label>About:&nbsp</label><%= @trip.abstract_trip.length.nil? ? "Can not estimate " : @trip.abstract_trip.length.round(2) %>km&nbsp
-          <label>in&nbsp</label> <%= @trip.abstract_trip.duration.hour %> hours
+          <label>in&nbsp</label> <%= @trip.abstract_trip.duration.nil? ? "Can not estimate " : @trip.abstract_trip.duration.hour %> hours
         </div>
         <div id="vehicle-type"> 
           <label>Vehicle type:&nbsp</label>

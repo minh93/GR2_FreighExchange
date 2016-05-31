@@ -1,7 +1,7 @@
 # config valid only for current version of Capistrano
 lock '3.5.0'
 
-server '54.169.232.137', port: 22, roles: [:web, :app, :db], primary: true
+server '54.169.3.74', port: 22, roles: [:web, :app, :db], primary: true
 
 set :repo_url,        'git@github.com:minh93/GR2_FreighExchange.git'
 set :application,     'freigh_exchange'
