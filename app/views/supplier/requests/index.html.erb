@@ -8,15 +8,7 @@
     $("#data-table-2").tablesorter(); 
   }); 
 </script>
-<div class="container" id="app-area">
-  <div class="row">
-    <div class="button-bar">
-      <a class="btn btn-default" href="#" role="button">Link</a>
-      <button class="btn btn-default" type="submit">Button</button>
-      <input class="btn btn-default" type="button" value="Input">
-      <input class="btn btn-default" type="submit" value="Submit">
-    </div>
-  </div>
+<div class="container" id="app-area">  
   <section class="row">
     <div class="table-name">
       <span>Customer requests</span>
@@ -29,6 +21,7 @@
             <th>Customer</th>
             <th>From</th>
             <th>To</th>
+            <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -40,9 +33,20 @@
             <td><%= request.StartPoint.address if request.StartPoint != nil %></td>
             <td><%= request.EndPoint.address if request.EndPoint != nil %></td>
             <td>
-              <%= link_to "", supplier_request_path(request, type: "request"), class: "glyphicon glyphicon-eye-open" %>&nbsp
-              <span class="glyphicon glyphicon-pencil"></span>
-            </td>            
+              <% @invoice = Invoice.find_by(request_id: request.id, supplier_id: current_user.get_detailed_info.id)
+                if @invoice != nil && @invoice.status == "accepted"
+               %>
+               accepted
+                <%= button_to "Assign trip", supplier_invoice_path(@invoice), method: :patch, class: "btn btn-default" %>
+              <% elsif @invoice != nil && @invoice.status == "finished" %>
+                <button class="btn btn-default">Assigned</button>
+              <% else %>
+                Pending
+              <% end %>
+            </td>
+            <td>
+              <%= link_to "", supplier_request_path(request, type: "request"), class: "glyphicon glyphicon-eye-open" %>&nbsp              
+            </td>
           </tr>
           <% end %>
         </tbody>

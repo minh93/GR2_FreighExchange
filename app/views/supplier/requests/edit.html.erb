@@ -1,0 +1,245 @@
+<script type="text/javascript">
+  function initMap() {
+    var directionsDisplay = new google.maps.DirectionsRenderer;
+    var directionsService = new google.maps.DirectionsService;
+    var map = new google.maps.Map(document.getElementById('map-canvas'), {
+      zoom: 14,
+      center: {lat: 21.0226967, lng: 105.8369637}
+    });
+    directionsDisplay.setMap(map);
+    calculateAndDisplayRoute(directionsService, directionsDisplay);
+    document.getElementById('mode').addEventListener('change', function() {
+      calculateAndDisplayRoute(directionsService, directionsDisplay);
+    });
+  }
+
+  function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+    var selectedMode = document.getElementById('mode').value;
+
+    var startLat = document.getElementById('start-lat').value;
+    var startLng = document.getElementById('start-lng').value;
+    var endLat = document.getElementById('end-lat').value;
+    var endLng = document.getElementById('end-lng').value;
+
+    var start = new google.maps.LatLng(startLat, startLng);
+    var end = new google.maps.LatLng(endLat, endLng);
+
+    directionsService.route({
+          origin: start, 
+          destination: end,          
+          travelMode: google.maps.TravelMode[selectedMode]
+        }, function(response, status) {
+          if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+  }
+</script>
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA10aWgd-daSGzR3ruieu5MgbGAxusiF90&callback=initMap">
+</script>
+<style type="text/css">
+  #map-canvas{
+    min-height: 400px;
+    margin-top: 10px;
+  }
+  #floating-panel {
+    position: absolute;
+    top: 35px;
+    left: 4%;
+    z-index: 5;
+    background-color: #fff;
+    padding: 5px;
+    border: 1px solid #999;
+    text-align: center;
+    font-family: 'Roboto','sans-serif';
+    line-height: 30px;
+    padding-left: 10px;
+  }
+  #estimate-way{
+    padding-top: 10px;
+  }
+</style>
+<div class="container-fluid">
+  <div class="form-area">
+    <div class="row container", style="background-color: #AAB3AB;">
+      <div class="row">
+        <h3 class="col-md-8">Customer info:</h3> 
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label>Email:</label>
+          <%= @request.customer.user.email %>
+        </div>
+        <div class="col-md-4">
+          <label>Address:</label>
+          <%= @request.customer.address %>
+        </div>
+        <div class="col-md-4">
+          <label>Phone number:</label>
+          <%= @request.customer.tel %>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h3>Suggested route</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <div id="map-canvas" ></div>
+      </div><!--End map region-->
+      <div class="col-md-4">
+        <div id="floating-panel">
+          <b>Mode of Travel: </b>
+          <select id="mode">
+            <option value="DRIVING">Driving</option>
+            <option value="WALKING">Walking</option>
+            <option value="BICYCLING">Bicycling</option>
+            <option value="TRANSIT">Transit</option>
+          </select>
+        </div>
+        <input id="start-lat" type="hidden" value = <%= @request.start_point_lat %> ></input>
+        <input id="start-lng" type="hidden" value = <%= @request.start_point_long %> ></input>
+        <input id="end-lat" type="hidden" value = <%= @request.end_point_lat %> ></input>
+        <input id="end-lng" type="hidden" value = <%= @request.end_point_long %> ></input>
+        <div id="estimate-way"> 
+          <label>About:&nbsp</label><%= @request.distance_estimate.nil? ? "Can not estimate " : @request.distance_estimate/1000 %>km&nbsp
+          <label>in&nbsp</label> some_values_goes_here hours
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h3>Physical properties</h3>
+      </div>
+    </div>
+    <div class="row form-group">
+      <div class="col-md-6">
+        <div class="col-md-6">
+          <div class="input-group">
+            <div class="input-group-addon">Weight</div>
+            <div class="form-control">
+              <%= @request.weight %>
+            </div>
+            <div class="input-group-addon">Ton</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group">
+            <div class="input-group-addon">Cap</div>
+            <div class="form-control">
+              <%= @request.capacity %>
+            </div>
+            <div class="input-group-addon">m3</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="col-md-4">
+          <div class="input-group">
+            <div class="input-group-addon">Height</div>
+            <div class="form-control">
+              <%= @request.height %>
+            </div>
+            <div class="input-group-addon">m</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group">
+            <div class="input-group-addon">Length</div>
+            <div class="form-control">
+              <%= @request.length %>
+            </div>
+            <div class="input-group-addon">m</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row form-group">
+      <div class="col-md-4">
+        <label>Time depature:</label>
+        <div class='input-group date' id='desiredate'>        
+          <div class="form-control">
+            <%= @request.time %>
+          </div>
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-calendar"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row form-group">
+      <label class="col-md-1">Others</label>
+      <div class="col-md-4">      
+        <div class="col-md-6" >
+          <label>Vehicle type:</label>
+          <div class="form-control"><%= VehicleCategory.find_by_id(@request.category_id).nil? ? "Not selected"  : VehicleCategory.find_by_id(@request.category_id).name %></div>
+        </div>
+        <div class="col-md-6">
+          <label>Good type:</label>
+          <div class="form-control"><%= @request.goods_type %></div>
+        </div>      
+      </div>
+    </div>
+    <div class="row form-group">
+      <div class="col-md-6">
+        <label>Description</label>
+        <p><%= @request.other_description %></p>
+      </div>
+    </div>    
+  </div>
+</div><!-- End of show request location -->
+<div class="container", id="assign-trip">
+  <div class="row">
+    <span class="col-md-8"><label>Create direct itineary</label></span>
+  </div>
+  <div class="row">
+    <%= form_tag("/supplier/update", method: "post", class: "") do %>
+    <%= hidden_field_tag :request_id, @request.id %>
+    <div class="form-group container">
+      <div class="row">
+        <div class="col-md-4">
+          <label>Assign vehicle:</label>
+        </div>
+        <div class="col-md-4">
+          <% vehicle_category = current_user.get_detailed_info.vehicles.available.map { |vehicle| [vehicle.vehicle_number, vehicle.id] } %>
+          <%= select_tag :vehicle_id, options_for_select(vehicle_category, 0), {class: "form-control"} %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label>Offer price:</label>
+        </div>
+        <div class="col-md-4">
+          <input type="text" value="<%= @invoice.offer_price %>" class="form-control" disabled >
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label>Message to customer</label>
+        </div>
+        <div class="col-md-4">
+          <%= text_area_tag(:message, "Hi, you're welcome", size: "24x6") %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label>Available for reverse direction</label>
+        </div>
+        <div class="col-md-4">
+          <%= check_box_tag(:is_persistence, true, false) %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <%= submit_tag("Create itineary", class: "btn btn-default") %>
+        </div>
+      </div>
+    </div>    
+    <% end %>
+  </div>
+</div>

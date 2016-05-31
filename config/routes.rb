@@ -20,8 +20,10 @@ Rails.application.routes.draw do
   namespace :supplier do
     post "approve_request" => "requests#approve"
     post "send_proposal" => "requests#send_proposal"
-    resources :vehicles    
-    resources :requests, only: [:show, :index]   
+    post "update" => "requests#update"
+    resources :vehicles
+    resources :invoices, only: [:update]    
+    resources :requests, only: [:show, :index, :edit]   
   end
 
   namespace :customer do

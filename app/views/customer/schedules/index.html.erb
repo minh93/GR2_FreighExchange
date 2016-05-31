@@ -52,8 +52,8 @@
           <td>
             <% if schedule.trips.count == 0 && schedule.invoices.count == 0 %>
               <%= button_to "Process to supplier", customer_schedule_trips_path(schedule) %>
-            <% elsif schedule.invoices.count == schedule.abstract_trips.count %>
-              <%= button_to "Accept", customer_schedule_path(schedule), method: :patch %>
+            <% elsif schedule.invoices.count == schedule.abstract_trips.count && schedule.status != "finished" %>
+              <%= button_to "Accept", customer_schedule_path(schedule), method: :patch, class: "btn btn-default" %>
             <% else %>
               <button>Processing (<%= schedule.invoices.count %> / <%= schedule.abstract_trips.count%>)</button>
             <% end %>
