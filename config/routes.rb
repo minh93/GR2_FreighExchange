@@ -22,13 +22,13 @@ Rails.application.routes.draw do
     post "send_proposal" => "requests#send_proposal"
     post "update" => "requests#update"
     resources :vehicles
-    resources :invoices, only: [:update]    
+    resources :invoices, only: [:update, :index]    
     resources :requests, only: [:show, :index, :edit]   
   end
 
   namespace :customer do
     resources :requests
-    resources :invoices, only: [:update]
+    resources :invoices, only: [:update, :index]
     resources :requests do
       resources :schedules, only: [:index, :update]
     end
